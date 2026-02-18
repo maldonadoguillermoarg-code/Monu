@@ -1,105 +1,175 @@
 import streamlit as st
-import pandas as pd
-from streamlit_gsheets import GSheetsConnection
 import base64
 import os
 
-# --- CONFIGURACIÓN DE PÁGINA PROFESIONAL ---
-st.set_page_config(page_title="Monú | Boutique", layout="wide", initial_sidebar_state="collapsed")
+# --- CONFIGURACIÓN DE ALTO NIVEL ---
+st.set_page_config(
+    page_title="Monú | Boutique Astral & Global",
+    page_icon="✨",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
-# Inicialización del carrito si no existe
+# --- CORE ENGINE: MANEJO DE ASSETS ---
+def get_base64_image(file_path):
+    abs_path = os.path.join(os.getcwd(), file_path)
+    if os.path.exists(abs_path):
+        with open(abs_path, 'rb') as f:
+            data = f.read()
+        return base64.b64encode(data).decode()
+    return None
+
+# Cargamos los logos y la imagen institucional del banner
+LOGO_HEADER = get_base64_image('MonumarcaLogoNegro.png')
+# CAMBIO QUIRÚRGICO: Ahora el banner carga envio.jpeg
+IMG_BANNER_ENVIO = get_base64_image('envio.jpeg') 
+LOGO_WATERMARK = get_base64_image('MonuMarcaDeAgua1.png')
+
+# --- UI FRAMEWORK: CSS CUSTOM ---
+watermark_css = f"""
+    background-image: url("data:image/png;base64,{LOGO_WATERMARK}");
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    background-size: 45%;
+    opacity: 0.08;
+""" if LOGO_WATERMARK else ""
+
+st.markdown(f"""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+
+    /* Estética Global: Tipografía Negra */
+    * {{ color: #000000 !important; font-family: 'Inter', sans-serif; }}
+    h1, h2, h3, .cinzel {{ font-family: 'Cinzel', serif !important; font-weight: 700; letter-spacing: 2px; }}
+
+    .stApp {{ background-color: #F5F5F5; }}
+    
+    .bg-watermark {{
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        {watermark_css} z-index: -1;
+    }}
+
+    /* HEADER FIJO */
+    .header {{
+        position: fixed; top: 0; left: 0; width: 100%; height: 140px;
+        background: rgba(255,255,255,0.99); border-bottom: 1px solid #000;
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0 50px; z-index: 1000;
+    }}
+
+    .logo-img-header {{ 
+        max-height: 125px; 
+        width: auto;
+        padding: 5px 0;
+    }}
+    
+    .nav-links {{ display: flex; gap: 40px; }}
+    .nav-item {{ text-decoration: none; font-size: 1.1rem; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.3s; font-weight: 700; }}
+
+    /* BANNER FULL-WIDTH CON IMAGEN INSTITUCIONAL */
+    .hero-container-full {{
+        margin-top: 140px;
+        width: 100vw;
+        margin-left: -5rem;
+        background: white;
+        border-top: 1px solid #000;
+        border-bottom: 1px solid #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }}
+    
+    .img-banner-envio {{
+        width: 100%;
+        max-width: 1200px; /* Ajuste para que no se deforme la imagen de pasos */
+        height: auto;
+        display: block;
+    }}
+
+    .aesthetic-subtitle {{
+        text-align: center;
+        margin-top: 15px;
+        font-size: 0.9rem;
+        letter-spacing: 8px;
+        font-style: italic;
+        opacity: 0.8;
+        text-transform: uppercase;
+    }}
+
+    /* Layout de Productos */
+    .main-content {{ padding: 40px; }}
+    .card {{ background: white; border: 1px solid #E0E0E0; padding: 20px; transition: 0.3s; }}
+    .card:hover {{ border: 1px solid #A66355; }}
+    .stButton>button {{ width: 100%; background-color: #A66355 !important; color: #000 !important; border: none; padding: 15px; font-weight: 600; }}
+
+    header, footer {{ visibility: hidden; }}
+    </style>
+    <div class="bg-watermark"></div>
+    """, unsafe_allow_html=True)
+
+# --- STATE MANAGEMENT ---
 if 'cart' not in st.session_state:
     st.session_state.cart = []
 
-# --- ESTILOS CSS (Respetando tipografía negra y logo grande) ---
-st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;600&display=swap');
-    
-    * { color: #000000 !important; font-family: 'Inter', sans-serif; }
-    .cinzel { font-family: 'Cinzel', serif !important; }
-    
-    .stApp { background-color: #FFFFFF; }
-    
-    /* Logo más grande y centrado */
-    .logo-container { display: flex; justify-content: center; padding: 30px 0; }
-    .main-logo { width: 350px; }
+# --- HEADER RENDER ---
+logo_header_html = f'<img src="data:image/png;base64,{LOGO_HEADER}" class="logo-img-header">' if LOGO_HEADER else '<h1>MONÚ</h1>'
 
-    /* Estilo de Tarjetas definido */
-    .card {
-        background: white;
-        padding: 15px;
-        border: 1px solid #000;
-        text-align: center;
-        margin-bottom: 10px;
-    }
-    
-    /* Botones de Streamlit personalizados para que no rompan la estética */
-    div.stButton > button {
-        background-color: #000 !important;
-        color: #fff !important;
-        width: 100%;
-        border-radius: 0px;
-        border: none;
-        font-weight: 700;
-        letter-spacing: 1px;
-    }
-    
-    header, footer, [data-testid="stHeader"] { visibility: hidden; }
-    </style>
-""", unsafe_allow_html=True)
+st.markdown(f"""
+    <div class="header">
+        <div>{logo_header_html}</div>
+        <div class="nav-links">
+            <a href="#productos" class="nav-item cinzel">CATÁLOGO</a>
+            <a href="#contacto" class="nav-item cinzel">CONTACTO</a>
+            <a href="/carrito" target="_blank" class="nav-item cinzel" style="color:#A66355 !important;">CARRITO ({len(st.session_state.cart)})</a>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-# --- HEADER CON LOGO ---
-st.markdown('<div class="logo-container">', unsafe_allow_html=True)
-# Si tienes el logo localmente se carga aquí, sino puedes usar la URL del sheet
-st.image("MonumarcaLogoNegro.png", width=350) 
-st.markdown('</div>', unsafe_allow_html=True)
+# --- BANNER CENTRAL CON IMAGEN ENVIO.JPEG ---
+banner_envio_html = f'<img src="data:image/png;base64,{IMG_BANNER_ENVIO}" class="img-banner-envio">' if IMG_BANNER_ENVIO else '<h1 class="cinzel">COMO COMPRAR</h1>'
 
-# --- CONEXIÓN A GOOGLE SHEETS (Brain de la tienda) ---
-url = "https://docs.google.com/spreadsheets/d/13WPtfzC4qY-Z3nu4kJv6vnVEneI_ikyDtUBuNzl83Fc/edit?usp=sharing"
+st.markdown(f"""
+    <div class="hero-container-full">
+        {banner_envio_html}
+    </div>
+    <p class="aesthetic-subtitle">Tienda Online</p>
+    """, unsafe_allow_html=True)
 
-try:
-    conn = st.connection("gsheets", type=GSheetsConnection)
-    # Leemos el sheet que contiene el catálogo de Dropi
-    df = conn.read(spreadsheet=url)
-    # Convertimos a la lista de diccionarios que procesa el loop
-    PRODUCTOS = df.to_dict('records')
-except Exception as e:
-    st.error("Error conectando con el catálogo. Verifique el Sheet.")
-    PRODUCTOS = []
+# --- PRODUCTOS (GRID) ---
+st.markdown('<div class="main-content" id="productos">', unsafe_allow_html=True)
+PRODUCTOS = [
+    {"id": "M001", "nombre": "Bala Labial 10 Vel.", "precio": 19999, "img": "https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=800"},
+    {"id": "M002", "nombre": "Conjunto Puntilla Soft", "precio": 14000, "img": "https://images.unsplash.com/photo-1541310588484-ad456b40e94f?w=800"},
+    {"id": "M003", "nombre": "Lubricante Anal LUBE", "precio": 11000, "img": "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=800"},
+    {"id": "M004", "nombre": "Body Splash SEXITIVE", "precio": 11000, "img": "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=800"}
+]
 
-# --- RENDERIZADO DE GÓNDOLA (Tu código integrado) ---
-st.markdown('<div style="padding: 0 10px;">', unsafe_allow_html=True)
-
-# Grid inteligente: Streamlit automáticamente maneja las columnas, pero el CSS las refuerza
-cols = st.columns([1, 1] if st.get_option("theme.base") == "dark" else 2) 
-
+cols = st.columns(2)
 for i, p in enumerate(PRODUCTOS):
     with cols[i % 2]:
-        # Estructura de tarjeta respetada al 100%
         st.markdown(f"""
             <div class="card">
-                <img src="{p['img']}" style="width:100%; height:auto; aspect-ratio:1/1; object-fit:cover;">
-                <h3 style="margin: 10px 0; font-size: 1.1rem;">{p['nombre']}</h3>
-                <h2 style="margin-bottom:15px; font-size: 1.4rem;">${int(p['precio']):,}</h2>
+                <img src="{p['img']}" style="width:100%; height:400px; object-fit:cover;">
+                <h3 style="margin: 15px 0; font-family: 'Cinzel', serif;">{p['nombre']}</h3>
+                <h2 style="margin-bottom:20px;">${p['precio']:,}</h2>
             </div>
         """, unsafe_allow_html=True)
         
-        # Botón con lógica de sesión
-        if st.button(f"AGREGAR", key=f"add_{p['id']}"):
+        if st.button(f"AÑADIR AL PEDIDO", key=f"add_{p['id']}"):
             st.session_state.cart.append(p)
-            st.toast(f"Agregado: {p['nombre']}") # Feedback senior al usuario
             st.rerun()
-
 st.markdown('</div>', unsafe_allow_html=True)
 
-# --- FOOTER (Tu código original respetado) ---
+# --- FOOTER ---
 st.markdown(f"""
-    <div style="background: white; padding: 40px 20px; text-align: center; border-top: 1px solid #000; margin-top: 50px;">
-        <h2 class="cinzel" style="font-size: 1.2rem; font-weight: 700;">MONÚ</h2>
-        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
-            <a href="#" style="text-decoration: none; font-size: 0.8rem; font-weight: 700; color: #000;">IG</a>
-            <a href="#" style="text-decoration: none; font-size: 0.8rem; font-weight: 700; color: #000;">WA</a>
+    <div style="background: white; padding: 50px; margin-top: 50px; text-align: center; border-top: 1px solid #000;" id="contacto">
+        <h2 class="cinzel">CONECTÁ CON MONÚ</h2>
+        <div style="display: flex; justify-content: center; gap: 30px; margin: 20px 0;">
+            <a href="#" style="font-weight: 700; text-decoration: none;">INSTAGRAM</a>
+            <a href="mailto:contacto@monu.com" style="font-weight: 700; text-decoration: none;">EMAIL</a>
+            <a href="https://wa.me/5491112345678" style="font-weight: 700; text-decoration: none;">WHATSAPP</a>
         </div>
     </div>
     """, unsafe_allow_html=True)
