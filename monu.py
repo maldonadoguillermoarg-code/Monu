@@ -19,7 +19,9 @@ def get_base64_image(file_path):
         return base64.b64encode(data).decode()
     return None
 
+# Cargamos ambos logos
 LOGO_HEADER = get_base64_image('MonumarcaLogoNegro.png')
+LOGO_BANNER = get_base64_image('LogoHorizontal2.png') # Este es el que va en el banner ahora
 LOGO_WATERMARK = get_base64_image('MonuMarcaDeAgua1.png')
 
 # --- UI FRAMEWORK: CSS CUSTOM ---
@@ -47,7 +49,7 @@ st.markdown(f"""
         {watermark_css} z-index: -1;
     }}
 
-    /* HEADER FIJO CON LOGO AGRANDADO */
+    /* HEADER FIJO */
     .header {{
         position: fixed; top: 0; left: 0; width: 100%; height: 140px;
         background: rgba(255,255,255,0.99); border-bottom: 1px solid #000;
@@ -55,8 +57,7 @@ st.markdown(f"""
         padding: 0 50px; z-index: 1000;
     }}
 
-    /* Ajuste Quirúrgico: Logo mucho más grande */
-    .logo-img {{ 
+    .logo-img-header {{ 
         max-height: 125px; 
         width: auto;
         padding: 5px 0;
@@ -65,36 +66,39 @@ st.markdown(f"""
     .nav-links {{ display: flex; gap: 40px; }}
     .nav-item {{ text-decoration: none; font-size: 1.1rem; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.3s; font-weight: 700; }}
 
-    /* BANNER FULL-WIDTH (RECTÁNGULO MONÚ) */
+    /* BANNER FULL-WIDTH CON LOGO IMAGEN */
     .hero-container-full {{
         margin-top: 140px;
         width: 100vw;
-        margin-left: -5rem; /* Ajuste para romper el padding de streamlit */
+        margin-left: -5rem;
         background: white;
         border-top: 1px solid #000;
         border-bottom: 1px solid #000;
-        padding: 15px 0;
-        text-align: center;
+        padding: 30px 0; /* Un poco más de aire para la imagen */
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }}
     
-    .hero-box-text {{
-        font-size: 3rem;
-        margin: 0;
-        letter-spacing: 15px;
+    .logo-img-banner {{
+        max-height: 150px; /* Tamaño impactante para el centro */
+        width: auto;
     }}
 
     .aesthetic-subtitle {{
         text-align: center;
         margin-top: 15px;
         font-size: 0.9rem;
-        letter-spacing: 6px;
+        letter-spacing: 8px;
         font-style: italic;
         opacity: 0.8;
+        text-transform: uppercase;
     }}
 
     /* Layout de Productos */
     .main-content {{ padding: 40px; }}
-    .card {{ background: white; border: 1px solid #E0E0E0; padding: 20px; }}
+    .card {{ background: white; border: 1px solid #E0E0E0; padding: 20px; transition: 0.3s; }}
+    .card:hover {{ border: 1px solid #A66355; }}
     .stButton>button {{ width: 100%; background-color: #A66355 !important; color: #000 !important; border: none; padding: 15px; font-weight: 600; }}
 
     header, footer {{ visibility: hidden; }}
@@ -107,11 +111,11 @@ if 'cart' not in st.session_state:
     st.session_state.cart = []
 
 # --- HEADER RENDER ---
-logo_html = f'<img src="data:image/png;base64,{LOGO_HEADER}" class="logo-img">' if LOGO_HEADER else '<h1>MONÚ</h1>'
+logo_header_html = f'<img src="data:image/png;base64,{LOGO_HEADER}" class="logo-img-header">' if LOGO_HEADER else '<h1>MONÚ</h1>'
 
 st.markdown(f"""
     <div class="header">
-        <div>{logo_html}</div>
+        <div>{logo_header_html}</div>
         <div class="nav-links">
             <a href="#productos" class="nav-item cinzel">CATÁLOGO</a>
             <a href="#contacto" class="nav-item cinzel">CONTACTO</a>
@@ -120,12 +124,14 @@ st.markdown(f"""
     </div>
     """, unsafe_allow_html=True)
 
-# --- BANNER MONÚ FULL WIDTH & TEXTO AESTHETIC ---
-st.markdown("""
+# --- BANNER MONÚ FULL WIDTH CON LOGO IMAGEN ---
+logo_banner_html = f'<img src="data:image/png;base64,{LOGO_BANNER}" class="logo-img-banner">' if LOGO_BANNER else '<h1 class="cinzel">MONÚ</h1>'
+
+st.markdown(f"""
     <div class="hero-container-full">
-        <h1 class="cinzel hero-box-text">MONÚ</h1>
+        {logo_banner_html}
     </div>
-    <p class="aesthetic-subtitle">ESENCIA ASTRAL • CURADURÍA GLOBAL • TU PODER INTERIOR</p>
+    <p class="aesthetic-subtitle">Tienda Online</p>
     """, unsafe_allow_html=True)
 
 # --- PRODUCTOS (GRID) ---
@@ -143,7 +149,7 @@ for i, p in enumerate(PRODUCTOS):
         st.markdown(f"""
             <div class="card">
                 <img src="{p['img']}" style="width:100%; height:400px; object-fit:cover;">
-                <h3 style="margin: 15px 0;">{p['nombre']}</h3>
+                <h3 style="margin: 15px 0; font-family: 'Cinzel', serif;">{p['nombre']}</h3>
                 <h2 style="margin-bottom:20px;">${p['precio']:,}</h2>
             </div>
         """, unsafe_allow_html=True)
