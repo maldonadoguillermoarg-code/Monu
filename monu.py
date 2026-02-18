@@ -1,90 +1,52 @@
 import streamlit as st
-import pandas as pd
 from streamlit_gsheets import GSheetsConnection
-import base64
 
-# --- CONFIGURACIÓN DE NIVEL SUPER SENIOR ---
-st.set_page_config(page_title="Monú | Boutique", layout="wide")
+# --- CONEXIÓN AL SHEET (Mantenemos tu URL) ---
+url = "https://docs.google.com/spreadsheets/d/13WPtfzC4qY-Z3nu4kJv6vnVEneI_ikyDtUBuNzl83Fc/edit?usp=sharing"
 
-# --- ESTILOS: TYPOGRAPHY BLACK & LOGO BIG ---
-def local_css():
-    st.markdown("""
-        <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap');
-        
-        /* Typography Always Black */
-        * { color: #000000 !important; }
-        
-        /* Logo más grande y centrado */
-        .logo-container {
-            display: flex;
-            justify-content: center;
-            padding: 20px 0;
-        }
-        .main-logo {
-            width: 300px; /* Logo más grande como pediste */
-            filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.1));
-        }
-
-        /* Background con transparencia reducida */
-        .stApp {
-            background-color: rgba(255, 255, 255, 0.95); /* Menos transparencia */
-        }
-
-        .product-card {
-            border: 1px solid #000;
-            padding: 20px;
-            border-radius: 0px; /* Estilo minimalista boutique */
-            text-align: center;
-            margin-bottom: 20px;
-            background: #fff;
-        }
-
-        .buy-button {
-            background-color: #000 !important;
-            color: #fff !important;
-            padding: 10px 20px;
-            text-decoration: none;
-            font-weight: bold;
-            display: inline-block;
-            margin-top: 10px;
-            width: 100%;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-local_css()
-
-# --- CONEXIÓN QUIRÚRGICA CON TU SHEET ---
-# Tu link: https://docs.google.com/spreadsheets/d/13WPtfzC4qY-Z3nu4kJv6vnVEneI_ikyDtUBuNzl83Fc/edit?usp=sharing
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
-    df = conn.read(spreadsheet="https://docs.google.com/spreadsheets/d/13WPtfzC4qY-Z3nu4kJv6vnVEneI_ikyDtUBuNzl83Fc/edit?usp=sharing")
-    
-    # --- HEADER CON LOGO ---
-    st.markdown('<div class="logo-container">', unsafe_allow_html=True)
-    # Aquí asumo que tienes el logo en la carpeta raíz. Si no, usa un link directo.
-    st.image("MonumarcaLogoNegro.png", width=300) 
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Leemos el sheet. Debe tener columnas: id, nombre, precio, img
+    df = conn.read(spreadsheet=url)
+    # Convertimos el DataFrame a la lista de diccionarios que usa tu código
+    PRODUCTOS = df.to_dict('records')
+except Exception:
+    # Fallback por si el sheet está vacío o desconectado
+    PRODUCTOS = []
 
-    st.markdown("<h1 style='text-align: center; font-family: Cinzel;'>CATÁLOGO EXCLUSIVO</h1>", unsafe_allow_html=True)
-    st.divider()
+# --- GRID INTELIGENTE (Tu código original) ---
+# Usamos un contenedor para el grid
+st.markdown('<div class="main-container">', unsafe_allow_html=True)
 
-    # --- GRID DE PRODUCTOS ---
-    if not df.empty:
-        cols = st.columns(2) # Ideal para celulares en Argentina
-        for index, row in df.iterrows():
-            with cols[index % 2]:
-                st.markdown(f"""
-                    <div class="product-card">
-                        <img src="{row['img']}" style="width:100%; aspect-ratio:1/1; object-fit:cover;">
-                        <h2 style="font-size: 1.2rem; margin-top:10px;">{row['nombre']}</h2>
-                        <p style="font-size: 1.5rem; font-weight: bold;">${row['precio']}</p>
-                        <a href="https://wa.me/549XXXXXXXXXX?text=Hola!%20Quiero%20la%20{row['nombre']}" class="buy-button">COMPRAR AHORA</a>
-                    </div>
-                """, unsafe_allow_html=True)
-    else:
-        st.write("Cargando productos de la boutique...")
+cols = st.columns(2) # Mantenemos tus 2 columnas fijas para estética Monú
 
-except Exception as e:
-    st.error("Conectando con la base de datos de Monú...")
+for i, p in enumerate(PRODUCTOS):
+    with cols[i % 2]:
+        # Renderizado de tarjeta exactamente como pediste
+        st.markdown(f"""
+            <div class="card">
+                <img src="{p['img']}" style="width:100%; height:auto; aspect-ratio:1/1; object-fit:cover;">
+                <h3 style="margin: 10px 0; font-size: 1.1rem;">{p['nombre']}</h3>
+                <h2 style="margin-bottom:15px; font-size: 1.4rem;">${int(p['precio']):,}</h2>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # Lógica de botón que ya funciona con tu carrito
+        if st.button(f"AGREGAR", key=f"add_{p['id']}"):
+            if 'cart' not in st.session_state:
+                st.session_state.cart = []
+            st.session_state.cart.append(p)
+            st.rerun()
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# --- FOOTER (Tu código original) ---
+st.markdown(f"""
+    <div style="background: white; padding: 40px 20px; text-align: center; border-top: 1px solid #000;">
+        <h2 class="cinzel" style="font-size: 1.2rem;">MONÚ</h2>
+        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
+            <a href="#" style="text-decoration: none; font-size: 0.8rem; font-weight: 700;">IG</a>
+            <a href="#" style="text-decoration: none; font-size: 0.8rem; font-weight: 700;">WA</a>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
