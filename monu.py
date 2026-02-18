@@ -21,7 +21,6 @@ def get_base64_image(file_path):
 
 # Cargamos los logos y la imagen institucional del banner
 LOGO_HEADER = get_base64_image('MonumarcaLogoNegro.png')
-# CAMBIO QUIRÚRGICO: Ahora el banner carga envio.jpeg
 IMG_BANNER_ENVIO = get_base64_image('envio.jpeg') 
 LOGO_WATERMARK = get_base64_image('MonuMarcaDeAgua1.png')
 
@@ -86,7 +85,7 @@ st.markdown(f"""
         max-width: 1200px; 
         height: auto;
         display: block;
-        margin: 0 auto; /* CAMBIO QUIRÚRGICO: Centrado de imagen */
+        margin: 0 auto;
     }}
 
     .aesthetic-subtitle {{
@@ -99,11 +98,38 @@ st.markdown(f"""
         text-transform: uppercase;
     }}
 
-    /* Layout de Productos */
+    /* Layout de Productos: Mejora Premium (Góndola) */
     .main-content {{ padding: 40px; }}
-    .card {{ background: white; border: 1px solid #E0E0E0; padding: 20px; transition: 0.3s; }}
-    .card:hover {{ border: 1px solid #A66355; }}
-    .stButton>button {{ width: 100%; background-color: #A66355 !important; color: #000 !important; border: none; padding: 15px; font-weight: 600; }}
+    
+    .card {{ 
+        background: white; 
+        border: 1px solid #E0E0E0; 
+        padding: 20px; 
+        transition: all 0.4s ease-in-out;
+        border-radius: 4px; /* Sutil redondeado */
+    }}
+    
+    .card:hover {{ 
+        border: 1px solid #000; 
+        box-shadow: 0px 10px 25px rgba(0,0,0,0.1); /* Sombra suave */
+        transform: translateY(-5px); /* Elevación */
+    }}
+
+    .stButton>button {{ 
+        width: 100%; 
+        background-color: #A66355 !important; 
+        color: #000 !important; 
+        border: none; 
+        padding: 15px; 
+        font-weight: 600; 
+        letter-spacing: 1px;
+        transition: 0.3s;
+    }}
+    
+    .stButton>button:hover {{
+        background-color: #000 !important;
+        color: #FFF !important;
+    }}
 
     header, footer {{ visibility: hidden; }}
     </style>
