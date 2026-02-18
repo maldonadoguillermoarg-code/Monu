@@ -20,7 +20,8 @@ def get_base64_image(file_path):
     return None
 
 LOGO_HEADER = get_base64_image('LogoHorizontal2.png')
-LOGO_WATERMARK = get_base64_image('MonumarcaLogoNegro.png')
+# CAMBIO QUIRÚRGICO: Nueva imagen de fondo solicitada
+LOGO_WATERMARK = get_base64_image('MonuMarcaDeAgua1.png')
 
 # --- DEFINICIÓN DE PRODUCTOS (EMIDICA READY) ---
 PRODUCTOS = [
@@ -85,19 +86,20 @@ st.markdown(f"""
 
     /* Header Estilo Boutique */
     .header {{
-        position: fixed; top: 0; left: 0; width: 100%; height: 100px;
+        position: fixed; top: 0; left: 0; width: 100%; height: 115px;
         background: rgba(255,255,255,0.98); border-bottom: 1px solid #000;
         display: flex; justify-content: space-between; align-items: center;
         padding: 0 50px; z-index: 1000;
     }}
-    .logo-img {{ max-height: 80px; }}
+    /* CAMBIO QUIRÚRGICO: Logo 15% más grande (de 80px a 92px) */
+    .logo-img {{ max-height: 92px; }}
     
     .nav-links {{ display: flex; gap: 40px; }}
     .nav-item {{ text-decoration: none; font-size: 1rem; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.3s; }}
     .nav-item:hover {{ border-bottom: 2px solid #A66355; }}
 
     /* Layout de Productos */
-    .main-content {{ margin-top: 130px; padding: 40px; }}
+    .main-content {{ margin-top: 150px; padding: 40px; }}
     
     .card {{
         background: white; border: 1px solid #F0F0F0; padding: 20px;
@@ -134,13 +136,15 @@ if 'cart' not in st.session_state:
 
 # --- HEADER RENDER ---
 logo_html = f'<img src="data:image/png;base64,{LOGO_HEADER}" class="logo-img">' if LOGO_HEADER else '<h1>MONÚ</h1>'
+
+# CAMBIO QUIRÚRGICO: El link del carrito ahora apunta a una página nueva (mockup)
 st.markdown(f"""
     <div class="header">
         <div>{logo_html}</div>
         <div class="nav-links">
             <a href="#productos" class="nav-item cinzel">CATÁLOGO</a>
             <a href="#contacto" class="nav-item cinzel">CONTACTO</a>
-            <div class="nav-item cinzel" style="color:#A66355 !important;">CARRITO ({len(st.session_state.cart)})</div>
+            <a href="/carrito" target="_blank" class="nav-item cinzel" style="color:#A66355 !important;">CARRITO ({len(st.session_state.cart)})</a>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -179,51 +183,10 @@ st.markdown(f"""
         <h2 class="cinzel">CONECTÁ CON MONÚ</h2>
         <p>Estamos para asesorarte en tu búsqueda astral.</p>
         <div class="social-icons">
-            <a href="https://instagram.com" target="_blank">INSTAGRAM</a>
+            <a href="https://instagram.com/tu_cuenta" target="_blank">INSTAGRAM</a>
             <a href="mailto:contacto@monu.com">EMAIL</a>
             <a href="https://wa.me/5491112345678">WHATSAPP</a>
         </div>
         <p style="font-size: 0.7rem; margin-top: 30px; opacity: 0.6;">© 2026 MONÚ BOUTIQUE. TODOS LOS DERECHOS RESERVADOS.</p>
     </div>
     """, unsafe_allow_html=True)
-
-# --- SIDEBAR: CARRITO DE COMPRAS ---
-with st.sidebar:
-    st.markdown("<h1 class='cinzel'>TU PEDIDO</h1>", unsafe_allow_html=True)
-    st.divider()
-    
-    if not st.session_state.cart:
-        st.info("Tu carrito está vacío. Explorá el catálogo.")
-    else:
-        total = 0
-        items_summary = ""
-        for idx, item in enumerate(st.session_state.cart):
-            col_a, col_b = st.columns([3, 1])
-            with col_a:
-                st.markdown(f"**{item['nombre']}**\n${item['precio']:,}")
-            with col_b:
-                if st.button("❌", key=f"del_{idx}"):
-                    st.session_state.cart.pop(idx)
-                    st.rerun()
-            total += item['precio']
-            items_summary += f"- {item['nombre']} (ID: {item['id']}): ${item['precio']:,}%0A"
-        
-        st.divider()
-        st.markdown(f"### TOTAL: ${total:,}")
-        
-        # WhatsApp API Integration
-        wa_phone = "5491112345678" # Cambiar al real
-        wa_text = f"Hola Monú! ✨ Quiero concretar mi pedido:%0A%0A{items_summary}%0ATotal: ${total:,}"
-        wa_link = f"https://wa.me/{wa_phone}?text={wa_text}"
-        
-        st.markdown(f"""
-            <a href="{wa_link}" target="_blank" style="text-decoration: none;">
-                <button style="width: 100%; background-color: #25d366 !important; color: #FFF !important; border-radius: 0; border: none; padding: 15px; font-weight: 700; cursor: pointer;">
-                    COMPRAR POR WHATSAPP 💬
-                </button>
-            </a>
-            """, unsafe_allow_html=True)
-        
-        if st.button("VACIAR CARRITO"):
-            st.session_state.cart = []
-            st.rerun()
