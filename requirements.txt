@@ -3,3 +3,6 @@ pandas
 streamlit-gsheets
 requests
 beautifulsoup4
+st-gsheets-connection
+gspread
+
