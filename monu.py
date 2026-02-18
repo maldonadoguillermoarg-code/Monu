@@ -19,9 +19,10 @@ def get_base64_image(file_path):
         return base64.b64encode(data).decode()
     return None
 
-# Cargamos ambos logos
+# Cargamos los logos y la imagen institucional del banner
 LOGO_HEADER = get_base64_image('MonumarcaLogoNegro.png')
-LOGO_BANNER = get_base64_image('LogoHorizontal2.png') # Este es el que va en el banner ahora
+# CAMBIO QUIRÚRGICO: Ahora el banner carga envio.jpeg
+IMG_BANNER_ENVIO = get_base64_image('envio.jpeg') 
 LOGO_WATERMARK = get_base64_image('MonuMarcaDeAgua1.png')
 
 # --- UI FRAMEWORK: CSS CUSTOM ---
@@ -66,7 +67,7 @@ st.markdown(f"""
     .nav-links {{ display: flex; gap: 40px; }}
     .nav-item {{ text-decoration: none; font-size: 1.1rem; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.3s; font-weight: 700; }}
 
-    /* BANNER FULL-WIDTH CON LOGO IMAGEN */
+    /* BANNER FULL-WIDTH CON IMAGEN INSTITUCIONAL */
     .hero-container-full {{
         margin-top: 140px;
         width: 100vw;
@@ -74,15 +75,17 @@ st.markdown(f"""
         background: white;
         border-top: 1px solid #000;
         border-bottom: 1px solid #000;
-        padding: 30px 0; /* Un poco más de aire para la imagen */
         display: flex;
         justify-content: center;
         align-items: center;
+        overflow: hidden;
     }}
     
-    .logo-img-banner {{
-        max-height: 150px; /* Tamaño impactante para el centro */
-        width: auto;
+    .img-banner-envio {{
+        width: 100%;
+        max-width: 1200px; /* Ajuste para que no se deforme la imagen de pasos */
+        height: auto;
+        display: block;
     }}
 
     .aesthetic-subtitle {{
@@ -124,12 +127,12 @@ st.markdown(f"""
     </div>
     """, unsafe_allow_html=True)
 
-# --- BANNER MONÚ FULL WIDTH CON LOGO IMAGEN ---
-logo_banner_html = f'<img src="data:image/png;base64,{LOGO_BANNER}" class="logo-img-banner">' if LOGO_BANNER else '<h1 class="cinzel">MONÚ</h1>'
+# --- BANNER CENTRAL CON IMAGEN ENVIO.JPEG ---
+banner_envio_html = f'<img src="data:image/png;base64,{IMG_BANNER_ENVIO}" class="img-banner-envio">' if IMG_BANNER_ENVIO else '<h1 class="cinzel">COMO COMPRAR</h1>'
 
 st.markdown(f"""
     <div class="hero-container-full">
-        {logo_banner_html}
+        {banner_envio_html}
     </div>
     <p class="aesthetic-subtitle">Tienda Online</p>
     """, unsafe_allow_html=True)
