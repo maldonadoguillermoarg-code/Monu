@@ -19,7 +19,7 @@ def get_base64_image(file_path):
         return base64.b64encode(data).decode()
     return None
 
-LOGO_HEADER = get_base64_image('LogoHorizontal2.png')
+LOGO_HEADER = get_base64_image('MonumarcaLogoNegro.png')
 LOGO_WATERMARK = get_base64_image('MonuMarcaDeAgua1.png')
 
 # --- UI FRAMEWORK: CSS CUSTOM ---
