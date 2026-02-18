@@ -20,7 +20,7 @@ def get_base64(bin_file):
 
 # Cargamos los logos
 logo_bg_base64 = get_base64('MonumarcaLogoNegro.png')
-logo_header_base64 = get_base64('LogoHorizontal.png')
+logo_header_base64 = get_base64('LogoHorizontal2.png')
 
 # --- ESTILO QUIRÚRGICO DE ALTO NIVEL ---
 fondo_style = ""
