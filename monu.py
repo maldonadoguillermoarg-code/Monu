@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- FUNCIÓN SENIOR PARA ASSETS ---
+# --- FUNCIÓN ASSETS ---
 def get_base64(bin_file):
     file_path = os.path.join(os.getcwd(), bin_file)
     if os.path.exists(file_path):
@@ -19,11 +19,12 @@ def get_base64(bin_file):
         return base64.b64encode(data).decode()
     return None
 
-# Cargamos los logos
+# Carga de recursos
 logo_bg_base64 = get_base64('MonumarcaLogoNegro.png')
 logo_header_base64 = get_base64('LogoHorizontal2.png')
 
-# --- ESTILO QUIRÚRGICO AESTHETIC REFINADO ---
+# --- ESTILO QUIRÚRGICO SUPER PRO ---
+# Bajamos la opacidad del fondo al 0.05 para que sea ultra sutil
 fondo_style = ""
 if logo_bg_base64:
     fondo_style = f"""
@@ -31,191 +32,182 @@ if logo_bg_base64:
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-position: center;
-    background-size: 30%;
+    background-size: 35%;
+    opacity: 0.05; 
     """
 
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
 
-    /* Fondo y Blur */
+    /* Reset y Tipografía Negra Total */
+    html, body, [class*="st-"] {{
+        color: #000000 !important;
+        font-family: 'Inter', sans-serif;
+    }}
+
     .stApp {{
         background-color: #FFFFFF;
-        {fondo_style}
     }}
-    .stApp::before {{
-        content: "";
-        position: absolute;
+
+    /* Marca de agua de fondo con transparencia controlada */
+    .bg-watermark {{
+        position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background-color: rgba(255, 255, 255, 0.92);
-        backdrop-filter: blur(15px);
+        {fondo_style}
         z-index: -1;
     }}
 
-    /* HEADER FIJO MEJORADO */
+    /* HEADER FIJO PROFESIONAL */
     .fixed-header {{
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 90px;
-        background-color: white;
+        top: 0; left: 0; width: 100%; height: 100px;
+        background-color: rgba(255, 255, 255, 0.98);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0 5%;
-        border-bottom: 1px solid #F2E8DF;
-        box-shadow: 0 2px 15px rgba(0,0,0,0.03);
-        z-index: 999999;
+        padding: 0 40px;
+        border-bottom: 1px solid #000000;
+        z-index: 9999;
     }}
     
     .header-logo-img {{
-        max-height: 65px; /* Más grande como pediste */
+        max-height: 80px; /* Logo más grande */
         width: auto;
     }}
 
-    .nav-buttons {{
+    .nav-container {{
         display: flex;
-        gap: 20px;
+        gap: 30px;
+        align-items: center;
     }}
 
-    .nav-link {{
-        text-decoration: none;
-        color: #5D3A32;
+    .nav-btn {{
+        background: none;
+        border: none;
+        color: #000000 !important;
         font-family: 'Cinzel', serif;
-        font-size: 0.9rem;
-        letter-spacing: 2px;
         font-weight: 700;
+        letter-spacing: 2px;
+        text-decoration: none;
+        font-size: 0.9rem;
         cursor: pointer;
-        padding: 10px 15px;
-        border-radius: 5px;
-        transition: 0.3s;
-    }}
-    .nav-link:hover {{
-        color: #A66355;
-        background-color: #FDF8F5;
+        text-transform: uppercase;
     }}
 
-    /* Margen para el contenido */
-    .main-content {{
-        margin-top: 120px;
+    /* Contenido principal */
+    .main-container {{
+        margin-top: 140px;
+        padding: 0 5%;
     }}
 
-    /* Cards de Producto */
+    /* Cards Minimalistas */
     .product-card {{
-        background: white;
+        border: 1px solid #EEEEEE;
         padding: 20px;
-        border-radius: 0px; /* Estética más minimalista/editorial */
-        border: 1px solid #F8F1EB;
-        text-align: center;
-        margin-bottom: 25px;
-        transition: 0.4s;
+        transition: 0.3s;
+        background: white;
     }}
     .product-card:hover {{
-        border: 1px solid #A66355;
+        border: 1px solid #000000;
     }}
 
-    /* Botón Boutique */
+    /* Botones de Acción */
     .stButton>button {{
         width: 100%;
         border-radius: 0px;
-        background-color: #5D3A32;
-        color: white;
-        border: none;
+        background-color: #000000;
+        color: #FFFFFF !important;
+        border: 1px solid #000000;
         padding: 12px;
         font-family: 'Inter', sans-serif;
-        font-weight: 300;
+        font-weight: 600;
         letter-spacing: 2px;
-        font-size: 0.8rem;
+        transition: 0.3s;
     }}
     .stButton>button:hover {{
-        background-color: #A66355;
-        color: white;
+        background-color: #FFFFFF;
+        color: #000000 !important;
     }}
 
-    /* Ocultar elementos de Streamlit */
-    #MainMenu {{visibility: hidden;}}
-    header {{visibility: hidden;}}
-    footer {{visibility: hidden;}}
-    .block-container {{padding-top: 0rem;}}
+    /* Ocultar elementos nativos */
+    header, footer {{visibility: hidden;}}
     </style>
+    <div class="bg-watermark"></div>
     """, unsafe_allow_html=True)
 
-# --- RENDER DEL HEADER FIJO ---
-logo_html = f'<img src="data:image/png;base64,{logo_header_base64}" class="header-logo-img">' if logo_header_base64 else '<h2 style="font-family:Cinzel; margin:0;">MONÚ</h2>'
+# --- LOGICA DE CARRITO ---
+if 'carrito' not in st.session_state:
+    st.session_state.carrito = []
+
+# --- HEADER RENDER ---
+logo_content = f'<img src="data:image/png;base64,{logo_header_base64}" class="header-logo-img">' if logo_header_base64 else '<h1>MONÚ</h1>'
 
 st.markdown(f"""
     <div class="fixed-header">
-        <div>
-            {logo_html}
-        </div>
-        <div class="nav-buttons">
-            <a class="nav-link" href="#catálogo">CATÁLOGO</a>
-            <span class="nav-link" onclick="window.parent.document.querySelector('.st-emotion-cache-1gh6602').click()">CARRITO</span>
+        <div style="cursor: pointer;">{logo_content}</div>
+        <div class="nav-container">
+            <a href="#catalogo" class="nav-btn">CATÁLOGO</a>
+            <div class="nav-btn">CARRITO ({len(st.session_state.carrito)})</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# Espaciador para el contenido principal
-st.markdown('<div class="main-content" id="catálogo"></div>', unsafe_allow_html=True)
+# --- SECCIÓN CATÁLOGO ---
+st.markdown('<div class="main-container" id="catalogo"></div>', unsafe_allow_html=True)
 
-# --- CUERPO DE LA TIENDA ---
-st.markdown("<h2 style='text-align: center; font-family: Cinzel; letter-spacing: 6px; color: #5D3A32;'>NUESTRA COLECCIÓN</h2>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #D4A373; font-style: italic; margin-bottom: 50px;'>Curaduría Astral & Estilo de Vida</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; font-family: Cinzel; letter-spacing: 10px; color: black;'>MONÚ</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: black; letter-spacing: 3px; margin-bottom: 60px;'>CURADURÍA GLOBAL • SELECCIÓN ASTRAL</p>", unsafe_allow_html=True)
 
-# Inventario
+# Inventario vinculado a Emidica
 productos = [
-    {"id": 1, "nombre": "Bala Labial 10 Vel.", "precio": 19999, "img": "https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=500"},
-    {"id": 2, "nombre": "Conjunto Puntilla Soft", "precio": 14000, "img": "https://images.unsplash.com/photo-1541310588484-ad456b40e94f?w=500"},
-    {"id": 3, "nombre": "Lubricante Anal LUBE", "precio": 11000, "img": "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=500"},
-    {"id": 4, "nombre": "Body Splash SEXITIVE", "precio": 11000, "img": "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=500"}
+    {"id": 1, "nombre": "Bala Labial 10 Vel.", "precio": 19999, "img": "https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=500", "sku": "EMI-001"},
+    {"id": 2, "nombre": "Conjunto Puntilla Soft", "precio": 14000, "img": "https://images.unsplash.com/photo-1541310588484-ad456b40e94f?w=500", "sku": "EMI-002"},
+    {"id": 3, "nombre": "Lubricante Anal LUBE", "precio": 11000, "img": "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=500", "sku": "EMI-003"},
+    {"id": 4, "nombre": "Body Splash SEXITIVE", "precio": 11000, "img": "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=500", "sku": "EMI-004"}
 ]
 
-if 'carrito' not in st.session_state:
-    st.session_state.carrito = []
-
-# Grid
 cols = st.columns(2)
 for i, prod in enumerate(productos):
     with cols[i % 2]:
         st.markdown(f"""
             <div class="product-card">
-                <img src="{prod['img']}" style="width:100%; height:250px; object-fit:cover; margin-bottom:15px;">
-                <h4 style="font-family: 'Cinzel'; color: #5D3A32; letter-spacing: 1px;">{prod['nombre']}</h4>
-                <p style="color: #A66355; font-weight: 400; font-size: 1.2rem;">${prod['precio']:,}</p>
+                <img src="{prod['img']}" style="width:100%; height:350px; object-fit:cover; margin-bottom:20px;">
+                <h3 style="font-family: 'Cinzel'; color: black; font-size: 1.2rem; margin-bottom:10px;">{prod['nombre']}</h3>
+                <p style="color: black; font-weight: 700; font-size: 1.3rem; margin-bottom:20px;">${prod['precio']:,}</p>
             </div>
         """, unsafe_allow_html=True)
         
-        if st.button(f"AGREGAR AL PEDIDO", key=f"prod_{prod['id']}"):
+        if st.button(f"AGREGAR AL PEDIDO", key=f"btn_{prod['id']}"):
             st.session_state.carrito.append(prod)
-            st.toast(f"Añadido ✨")
+            st.rerun()
 
-# --- SIDEBAR (EL CARRITO) ---
+# --- SIDEBAR (CARRITO PROFESIONAL) ---
 with st.sidebar:
-    st.markdown("<h2 style='font-family: Cinzel; color: #5D3A32;'>Tu Selección</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-family: Cinzel; color: black;'>TU PEDIDO</h2>", unsafe_allow_html=True)
     if not st.session_state.carrito:
-        st.write("Tu pedido está vacío.")
+        st.write("Tu selección está vacía.")
     else:
         total = sum(item['precio'] for item in st.session_state.carrito)
-        resumen = ""
+        resumen_ws = ""
         for item in st.session_state.carrito:
-            st.write(f"🏷️ **{item['nombre']}** - ${item['precio']:,}")
-            resumen += f"- {item['nombre']} (${item['precio']:,})%0A"
+            st.markdown(f"**{item['nombre']}** \n${item['precio']:,} (Ref: {item['sku']})")
+            resumen_ws += f"- {item['nombre']} ({item['sku']}): ${item['precio']:,}%0A"
         
         st.divider()
-        st.markdown(f"### Total: ${total:,}")
+        st.markdown(f"### TOTAL: ${total:,}")
         
-        ws_msg = f"Hola Monú! ✨%0A{resumen}%0ATotal: ${total:,}"
-        ws_url = f"https://wa.me/5491112345678?text={ws_msg}" 
+        # Link de WhatsApp con SKU para que sepas qué cargar en Emidica
+        ws_url = f"https://wa.me/5491112345678?text=Hola Monú! ✨ Quiero concretar este pedido:%0A{resumen_ws}%0ATotal: ${total:,}"
         
         st.markdown(f"""
             <a href="{ws_url}" target="_blank" style="text-decoration: none;">
-                <button style="width: 100%; border-radius: 0px; background-color: #25d366; color: white; border: none; padding: 15px; font-weight: bold; cursor: pointer; letter-spacing: 1px;">
-                    CONSULTAR POR WHATSAPP 💬
+                <button style="width: 100%; background-color: #25d366; color: white; border: none; padding: 15px; font-weight: bold; cursor: pointer; letter-spacing: 1px;">
+                    FINALIZAR PEDIDO 💬
                 </button>
             </a>
         """, unsafe_allow_html=True)
         
-        if st.button("VACIAR"):
+        if st.button("LIMPIAR CARRITO"):
             st.session_state.carrito = []
             st.rerun()
