@@ -1,7 +1,16 @@
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
 import pandas as pd
+from streamlit_gsheets import GSheetsConnection
+import requests
+from bs4 import BeautifulSoup
 import urllib.parse
+
+# --- CONFIGURACIÓN DE PÁGINA ---
+st.set_page_config(
+    page_title="Monú | Boutique Astral & Global",
+    page_icon="🎬",
+    layout="wide"
+)
 
 # --- CONFIGURACIÓN DE PÁGINA (Debe ser la primera instrucción) ---
 st.set_page_config(
