@@ -1,157 +1,174 @@
 import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
+import requests
+from bs4 import BeautifulSoup
 import urllib.parse
 
-# 1. CONFIGURACIÓN DE PÁGINA (Debe ser lo primero)
-st.set_page_config(
-    page_title="Monú | Boutique Astral & Global",
-    page_icon="🎬",
-    layout="wide"
-)
+# 1. CONFIGURACIÓN DE PÁGINA
+st.set_page_config(page_title="Monú | Boutique Auto-Store", layout="wide")
 
-# 2. INYECCIÓN DE CSS "BLINDADO" (Anula Modo Oscuro)
+# 2. CSS B&W PROFESIONAL (Anula modo oscuro y fuerza estética Minimal)
 def inject_custom_css():
     st.markdown("""
     <style>
-        /* Reescritura de variables internas de Streamlit */
         :root {
-            --primary-color: #000000;
             --background-color: #F0F2F6;
-            --secondary-background-color: #FFFFFF;
             --text-color: #000000;
         }
-
-        /* Forzar fondo y texto en todos los contenedores principales */
-        .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+        /* Fondo General */
+        .stApp, [data-testid="stAppViewContainer"] {
             background-color: #F0F2F6 !important;
+        }
+        /* Forzar texto negro */
+        h1, h2, h3, h4, p, span, div, label {
             color: #000000 !important;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         }
-
-        /* Forzar color negro a TODO el texto */
-        h1, h2, h3, h4, h5, h6, p, span, div, label, .stMarkdown, small {
-            color: #000000 !important;
+        /* Contenedor de Producto */
+        .product-card {
+            background-color: #FFFFFF;
+            border: 2px solid #000000;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            min-height: 450px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
-
-        /* Sidebar con estilo minimalista */
-        [data-testid="stSidebar"] {
-            background-color: #FFFFFF !important;
-            border-right: 1px solid #000000;
+        /* Imagen B&W con Hover a Color */
+        .product-img {
+            filter: grayscale(100%);
+            transition: 0.4s ease;
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 15px;
         }
-
-        /* Cards de producto: Fondo blanco y borde negro */
-        div[data-testid="stVerticalBlock"] > div > div > div.stVerticalBlock {
-            background-color: #FFFFFF !important;
-            border: 2px solid #000000 !important;
-            padding: 20px !important;
-            border-radius: 0px !important;
-            margin-bottom: 10px;
+        .product-img:hover {
+            filter: grayscale(0%);
         }
-
-        /* Botones estilo B&W */
+        /* Botones Minimalistas */
         div.stButton > button {
             background-color: #000000 !important;
             color: #FFFFFF !important;
             border-radius: 0px !important;
             border: none !important;
-            width: 100%;
             font-weight: bold;
-            transition: 0.3s;
+            width: 100%;
+            padding: 10px;
         }
-
         div.stButton > button:hover {
             background-color: #444444 !important;
             box-shadow: 4px 4px 0px #000000;
         }
-
-        /* Ajuste de imágenes para que no se vean raras con el fondo */
-        img {
-            border-radius: 0px;
-            margin-bottom: 10px;
+        /* Sidebar */
+        [data-testid="stSidebar"] {
+            background-color: #FFFFFF !important;
+            border-right: 2px solid #000000;
         }
-
-        /* Ocultar elementos innecesarios de Streamlit */
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-# 3. LÓGICA DE DATOS
-@st.cache_data(ttl=300)
-def load_data():
+# 3. MOTOR DE EXTRACCIÓN (Scraping Inteligente con Caché)
+@st.cache_data(ttl=3600)
+def get_product_info(url):
     try:
-        conn = st.connection("gsheets", type=GSheetsConnection)
-        df = conn.read()
-        return df.dropna(subset=['id', 'nombre', 'precio'])
-    except Exception as e:
-        st.error(f"Error de conexión: {e}")
-        return pd.DataFrame()
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+        response = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Extraer Nombre (Metadatos OG)
+        name = soup.find("meta", property="og:title")
+        name = name["content"].split(" - ")[0] if name else "Producto Monú"
+        
+        # Extraer Imagen
+        img = soup.find("meta", property="og:image")
+        img_url = img["content"] if img else "https://via.placeholder.com/400?text=Monu+Boutique"
+        
+        # Extraer Precio (Lógica para WooCommerce)
+        price_meta = soup.find("meta", property="product:price:amount")
+        if price_meta:
+            price = f"${price_meta['content']}"
+        else:
+            # Búsqueda manual si falla el meta
+            price_tag = soup.select_one(".woocommerce-Price-amount bdi, .price")
+            price = price_tag.get_text() if price_tag else "Consultar"
 
-# 4. GESTIÓN DE ESTADO (CARRITO)
+        return {"name": name, "img": img_url, "price": price, "url": url}
+    except Exception:
+        return None
+
+# 4. INICIALIZACIÓN DE CARRITO
 if 'cart' not in st.session_state:
-    st.session_state['cart'] = {}
+    st.session_state['cart'] = []
 
-def add_to_cart(prod_id, prod_name, prod_price):
-    if prod_id in st.session_state['cart']:
-        st.session_state['cart'][prod_id]['qty'] += 1
-    else:
-        st.session_state['cart'][prod_id] = {'name': prod_name, 'price': prod_price, 'qty': 1}
-    st.toast(f"✅ Añadido: {prod_name}")
-
-# 5. UI PRINCIPAL
 def main():
     inject_custom_css()
     
-    # Logo Superior
-    st.markdown('<div style="text-align:center;"><img src="https://via.placeholder.com/300x120?text=MONU+BOUTIQUE" width="300"></div>', unsafe_allow_html=True)
-    
-    df = load_data()
-    
-    # Sidebar: Resumen de Compra
+    # Logo o Título
+    st.markdown("<h1 style='text-align:center; letter-spacing: 5px;'>M O N Ú</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; margin-bottom: 40px;'>BOUTIQUE ASTRAL & GLOBAL</p>", unsafe_allow_html=True)
+
+    # Conexión a Google Sheets
+    try:
+        conn = st.connection("gsheets", type=GSheetsConnection)
+        df = conn.read()
+        # Limpiar nombres de columnas y quitar filas vacías
+        df.columns = [str(c).lower().strip() for c in df.columns]
+        df = df.dropna(subset=['url'])
+        urls = df['url'].tolist()
+    except Exception as e:
+        st.error("Error conectando con el Google Sheet. Verifica los Secrets.")
+        return
+
+    # SIDEBAR: Carrito
     with st.sidebar:
-        st.title("TU PEDIDO")
+        st.markdown("### 🛒 TU SELECCIÓN")
         if not st.session_state['cart']:
-            st.write("No hay productos.")
+            st.write("El carrito está vacío.")
         else:
-            total = 0
-            for pid, item in list(st.session_state['cart'].items()):
-                sub = item['price'] * item['qty']
-                total += sub
-                st.write(f"**{item['name']}**")
-                st.caption(f"{item['qty']} x ${item['price']:,.2f} = ${sub:,.2f}")
+            for i, item in enumerate(st.session_state['cart']):
+                st.write(f"**{item['name']}** - {item['price']}")
             
             st.divider()
-            st.subheader(f"Total: ${total:,.2f}")
             
-            if st.button("FINALIZAR PEDIDO (WA)"):
-                msg = f"Hola! Quisiera realizar este pedido:\n"
-                for pid, item in st.session_state['cart'].items():
-                    msg += f"- {item['name']} x{item['qty']}\n"
-                msg += f"\nTotal: ${total:,.2f}"
-                wa_url = f"https://wa.me/5491122334455?text={urllib.parse.quote(msg)}"
-                st.link_button("Ir a WhatsApp 📱", wa_url)
-
-            if st.button("Vaciar Carrito"):
-                st.session_state['cart'] = {}
+            # Generar link de WhatsApp
+            items_list = "\n".join([f"- {i['name']} ({i['price']})" for i in st.session_state['cart']])
+            wa_text = urllib.parse.quote(f"¡Hola Monú! Quisiera este pedido:\n\n{items_list}")
+            
+            st.link_button("FINALIZAR POR WHATSAPP", f"https://wa.me/5491122334455?text={wa_text}")
+            
+            if st.button("Limpiar Carrito"):
+                st.session_state['cart'] = []
                 st.rerun()
 
-    # Catálogo
-    if not df.empty:
-        st.markdown("### ✦ CATÁLOGO")
+    # CATÁLOGO: Generación por cada fila del Sheet
+    if urls:
         cols = st.columns(3)
-        for idx, row in df.iterrows():
-            with cols[idx % 3]:
-                with st.container():
-                    st.image(row['imagen_url'], width='stretch')
-                    st.markdown(f"**{row['nombre']}**")
-                    st.markdown(f"**${row['precio']:,.2f}**")
+        for idx, link in enumerate(urls):
+            with st.spinner(f'Cargando producto {idx+1}...'):
+                product = get_product_info(link)
+                
+            if product:
+                with cols[idx % 3]:
+                    # Renderizado de Tarjeta B&W
+                    st.markdown(f"""
+                    <div class="product-card">
+                        <img src="{product['img']}" class="product-img">
+                        <h4>{product['name']}</h4>
+                        <p style="font-size: 1.2rem;"><b>{product['price']}</b></p>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
-                    st.link_button("DETALLES", row['info_url'])
-                    if st.button("AÑADIR", key=f"add_{row['id']}"):
-                        add_to_cart(row['id'], row['nombre'], row['precio'])
+                    # Botones de Acción
+                    st.link_button("VER WEB", product['url'])
+                    if st.button("AÑADIR AL CARRITO", key=f"add_{idx}"):
+                        st.session_state['cart'].append(product)
+                        st.toast(f"Añadido: {product['name']}")
                         st.rerun()
     else:
-        st.warning("No se encontraron productos en el Google Sheet.")
+        st.info("No hay links en el Google Sheet aún.")
 
 if __name__ == "__main__":
     main()
