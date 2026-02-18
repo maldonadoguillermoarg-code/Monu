@@ -20,61 +20,51 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- INYECCIÓN DE CSS SEGURO (B&W Identity) ---
 def inject_custom_css():
     st.markdown("""
     <style>
-        /* Reset de Colores a Blanco y Negro */
-        .stApp {
-            background-color: #FFFFFF !important;
-            color: #000000 !important;
-        }
-        
-        /* Forzar texto negro absoluto en toda la app */
-        h1, h2, h3, h4, p, span, div, label, .stMarkdown {
-            color: #000000 !important;
-            font-family: 'Inter', 'Helvetica', sans-serif;
+        /* 1. FORZAR FONDO GRIS CLARO EN TODA LA APP */
+        html, body, [data-testid="stAppViewContainer"], .main {
+            background-color: #F0F2F6 !important;
         }
 
-        /* Estilo de las Cards de Producto */
-        .product-container {
-            border: 2px solid #000000;
-            padding: 20px;
-            margin-bottom: 25px;
-            background-color: #FFFFFF;
-            transition: all 0.3s ease;
-        }
-        
-        /* Botones Globales Minimalistas */
-        div.stButton > button {
-            border-radius: 0px !important;
-            border: 2px solid #000000 !important;
-            background-color: #FFFFFF !important;
+        /* 2. FORZAR TEXTO NEGRO ABSOLUTO */
+        * {
             color: #000000 !important;
-            width: 100%;
+            font-family: 'Helvetica', sans-serif;
+        }
+
+        /* 3. CONTENEDOR DE PRODUCTOS (Blanco para que resalte sobre el gris) */
+        [data-testid="stVerticalBlock"] > div > div > .stVerticalBlock {
+            background-color: #FFFFFF !important;
+            border: 1px solid #000000;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        /* 4. SIDEBAR (Gris un poco más oscuro para contraste) */
+        [data-testid="stSidebar"] {
+            background-color: #E0E2E6 !important;
+            border-right: 2px solid #000000;
+        }
+
+        /* 5. BOTONES (Estilo Minimalista B&W) */
+        div.stButton > button {
+            background-color: #000000 !important;
+            color: #FFFFFF !important;
+            border-radius: 2px !important;
+            border: none !important;
             font-weight: bold;
-            text-transform: uppercase;
         }
         
         div.stButton > button:hover {
-            background-color: #000000 !important;
+            background-color: #444444 !important;
             color: #FFFFFF !important;
         }
 
-        /* Imagen con filtro escala de grises */
-        img {
-            filter: grayscale(100%);
-            transition: 0.3s;
-        }
-        img:hover {
-            filter: grayscale(0%);
-        }
-
-        /* Logo Centrado */
-        .logo-wrapper {
-            display: flex;
-            justify-content: center;
-            padding: 40px 0;
+        /* 6. INPUTS Y SELECTBOX (Fondo blanco para ver qué escribes) */
+        .stSelectbox div[data-baseweb="select"] {
+            background-color: #FFFFFF !important;
         }
     </style>
     """, unsafe_allow_html=True)
