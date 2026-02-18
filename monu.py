@@ -19,28 +19,32 @@ def get_base64_image(file_path):
         return base64.b64encode(data).decode()
     return None
 
-# Cargamos los logos y la imagen institucional del banner
 LOGO_HEADER = get_base64_image('MonumarcaLogoNegro.png')
 IMG_BANNER_ENVIO = get_base64_image('envio.jpeg') 
 LOGO_WATERMARK = get_base64_image('MonuMarcaDeAgua1.png')
 
-# --- UI FRAMEWORK: CSS CUSTOM ---
+# --- UI FRAMEWORK: CSS CUSTOM OPTIMIZADO PARA MÓVILES ---
 watermark_css = f"""
     background-image: url("data:image/png;base64,{LOGO_WATERMARK}");
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-position: center;
-    background-size: 45%;
-    opacity: 0.08;
+    background-size: 80%; /* Más grande en móvil para que se note */
+    opacity: 0.05;
 """ if LOGO_WATERMARK else ""
 
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
 
-    /* Estética Global: Tipografía Negra */
+    /* Reseteo de seguridad para móviles */
+    html, body, [data-testid="stAppViewContainer"] {{
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+    }}
+
     * {{ color: #000000 !important; font-family: 'Inter', sans-serif; }}
-    h1, h2, h3, .cinzel {{ font-family: 'Cinzel', serif !important; font-weight: 700; letter-spacing: 2px; }}
+    h1, h2, h3, .cinzel {{ font-family: 'Cinzel', serif !important; font-weight: 700; letter-spacing: 1px; }}
 
     .stApp {{ background-color: #F5F5F5; }}
     
@@ -49,89 +53,78 @@ st.markdown(f"""
         {watermark_css} z-index: -1;
     }}
 
-    /* HEADER FIJO */
+    /* HEADER ADAPTATIVO */
     .header {{
-        position: fixed; top: 0; left: 0; width: 100%; height: 140px;
-        background: rgba(255,255,255,0.99); border-bottom: 1px solid #000;
+        position: fixed; top: 0; left: 0; width: 100%; height: 100px;
+        background: rgba(255,255,255,0.98); border-bottom: 1px solid #000;
         display: flex; justify-content: space-between; align-items: center;
-        padding: 0 50px; z-index: 1000;
+        padding: 0 20px; z-index: 1000;
     }}
 
     .logo-img-header {{ 
-        max-height: 125px; 
+        max-height: 70px; /* Reducido para móviles */
         width: auto;
-        padding: 5px 0;
     }}
     
-    .nav-links {{ display: flex; gap: 40px; }}
-    .nav-item {{ text-decoration: none; font-size: 1.1rem; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.3s; font-weight: 700; }}
+    .nav-links {{ display: flex; gap: 15px; }}
+    .nav-item {{ text-decoration: none; font-size: 0.8rem; font-weight: 700; }}
 
-    /* BANNER FULL-WIDTH CON IMAGEN INSTITUCIONAL */
+    /* BANNER MOBILE FIRST */
     .hero-container-full {{
-        margin-top: 140px;
-        width: 100vw;
-        margin-left: -5rem;
+        margin-top: 100px;
+        width: 100%;
         background: white;
-        border-top: 1px solid #000;
         border-bottom: 1px solid #000;
         display: flex;
         justify-content: center;
-        align-items: center;
-        overflow: hidden;
+        padding: 15px 10px;
     }}
     
     .img-banner-envio {{
         width: 100%;
-        max-width: 1200px; 
+        max-width: 600px; 
         height: auto;
-        display: block;
-        margin: 0 auto;
+        border-radius: 8px;
     }}
 
-    .aesthetic-subtitle {{
-        text-align: center;
-        margin-top: 15px;
-        font-size: 0.9rem;
-        letter-spacing: 8px;
-        font-style: italic;
-        opacity: 0.8;
-        text-transform: uppercase;
-    }}
-
-    /* Layout de Productos: Mejora Premium (Góndola) */
-    .main-content {{ padding: 40px; }}
+    /* GÓNDOLA DE PRODUCTOS OPTIMIZADA */
+    .main-content {{ padding: 20px 10px; }}
     
     .card {{ 
         background: white; 
-        border: 1px solid #E0E0E0; 
-        padding: 20px; 
-        transition: all 0.4s ease-in-out;
-        border-radius: 4px; /* Sutil redondeado */
+        border: 1px solid #EEE; 
+        padding: 15px; 
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.05);
     }}
     
-    .card:hover {{ 
-        border: 1px solid #000; 
-        box-shadow: 0px 10px 25px rgba(0,0,0,0.1); /* Sombra suave */
-        transform: translateY(-5px); /* Elevación */
+    .card img {{
+        border-radius: 4px;
+        margin-bottom: 15px;
     }}
 
+    /* BOTÓN TOUCH-FRIENDLY (44px de altura mínimo) */
     .stButton>button {{ 
         width: 100%; 
+        height: 50px;
         background-color: #A66355 !important; 
         color: #000 !important; 
-        border: none; 
-        padding: 15px; 
-        font-weight: 600; 
-        letter-spacing: 1px;
-        transition: 0.3s;
-    }}
-    
-    .stButton>button:hover {{
-        background-color: #000 !important;
-        color: #FFF !important;
+        border-radius: 4px;
+        font-weight: 700;
+        text-transform: uppercase;
     }}
 
-    header, footer {{ visibility: hidden; }}
+    /* Media Query para pantallas grandes (PC) */
+    @media (min-width: 768px) {{
+        .header {{ height: 140px; padding: 0 50px; }}
+        .logo-img-header {{ max-height: 110px; }}
+        .nav-item {{ font-size: 1.1rem; gap: 40px; }}
+        .hero-container-full {{ margin-top: 140px; padding: 30px 0; }}
+        .img-banner-envio {{ max-width: 1100px; }}
+    }}
+
+    header, footer, [data-testid="stHeader"] {{ visibility: hidden; }}
     </style>
     <div class="bg-watermark"></div>
     """, unsafe_allow_html=True)
@@ -140,32 +133,31 @@ st.markdown(f"""
 if 'cart' not in st.session_state:
     st.session_state.cart = []
 
-# --- HEADER RENDER ---
-logo_header_html = f'<img src="data:image/png;base64,{LOGO_HEADER}" class="logo-img-header">' if LOGO_HEADER else '<h1>MONÚ</h1>'
+# --- HEADER ---
+logo_header_html = f'<img src="data:image/png;base64,{LOGO_HEADER}" class="logo-img-header">' if LOGO_HEADER else '<h2 class="cinzel">MONÚ</h2>'
 
 st.markdown(f"""
     <div class="header">
         <div>{logo_header_html}</div>
         <div class="nav-links">
-            <a href="#productos" class="nav-item cinzel">CATÁLOGO</a>
-            <a href="#contacto" class="nav-item cinzel">CONTACTO</a>
-            <a href="/carrito" target="_blank" class="nav-item cinzel" style="color:#A66355 !important;">CARRITO ({len(st.session_state.cart)})</a>
+            <a href="#productos" class="nav-item cinzel">PRODUCTOS</a>
+            <a href="/carrito" target="_blank" class="nav-item cinzel" style="color:#A66355 !important;">🛒 ({len(st.session_state.cart)})</a>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# --- BANNER CENTRAL CON IMAGEN ENVIO.JPEG ---
-banner_envio_html = f'<img src="data:image/png;base64,{IMG_BANNER_ENVIO}" class="img-banner-envio">' if IMG_BANNER_ENVIO else '<h1 class="cinzel">COMO COMPRAR</h1>'
+# --- BANNER CENTRAL ---
+banner_envio_html = f'<img src="data:image/png;base64,{IMG_BANNER_ENVIO}" class="img-banner-envio">' if IMG_BANNER_ENVIO else '<p>Pasos de compra</p>'
 
 st.markdown(f"""
     <div class="hero-container-full">
         {banner_envio_html}
     </div>
-    <p class="aesthetic-subtitle">Tienda Online</p>
     """, unsafe_allow_html=True)
 
-# --- PRODUCTOS (GRID) ---
+# --- PRODUCTOS (GRID RESPONSIVE) ---
 st.markdown('<div class="main-content" id="productos">', unsafe_allow_html=True)
+
 PRODUCTOS = [
     {"id": "M001", "nombre": "Bala Labial 10 Vel.", "precio": 19999, "img": "https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=800"},
     {"id": "M002", "nombre": "Conjunto Puntilla Soft", "precio": 14000, "img": "https://images.unsplash.com/photo-1541310588484-ad456b40e94f?w=800"},
@@ -173,30 +165,32 @@ PRODUCTOS = [
     {"id": "M004", "nombre": "Body Splash SEXITIVE", "precio": 11000, "img": "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=800"}
 ]
 
-cols = st.columns(2)
+# Grid inteligente: Streamlit automáticamente maneja las columnas, pero el CSS las refuerza
+cols = st.columns([1, 1] if st.get_option("theme.base") == "dark" else 2) 
+
 for i, p in enumerate(PRODUCTOS):
     with cols[i % 2]:
         st.markdown(f"""
             <div class="card">
-                <img src="{p['img']}" style="width:100%; height:400px; object-fit:cover;">
-                <h3 style="margin: 15px 0; font-family: 'Cinzel', serif;">{p['nombre']}</h3>
-                <h2 style="margin-bottom:20px;">${p['precio']:,}</h2>
+                <img src="{p['img']}" style="width:100%; height:auto; aspect-ratio:1/1; object-fit:cover;">
+                <h3 style="margin: 10px 0; font-size: 1.1rem;">{p['nombre']}</h3>
+                <h2 style="margin-bottom:15px; font-size: 1.4rem;">${p['precio']:,}</h2>
             </div>
         """, unsafe_allow_html=True)
         
-        if st.button(f"AÑADIR AL PEDIDO", key=f"add_{p['id']}"):
+        if st.button(f"AGREGAR", key=f"add_{p['id']}"):
             st.session_state.cart.append(p)
             st.rerun()
+
 st.markdown('</div>', unsafe_allow_html=True)
 
 # --- FOOTER ---
 st.markdown(f"""
-    <div style="background: white; padding: 50px; margin-top: 50px; text-align: center; border-top: 1px solid #000;" id="contacto">
-        <h2 class="cinzel">CONECTÁ CON MONÚ</h2>
-        <div style="display: flex; justify-content: center; gap: 30px; margin: 20px 0;">
-            <a href="#" style="font-weight: 700; text-decoration: none;">INSTAGRAM</a>
-            <a href="mailto:contacto@monu.com" style="font-weight: 700; text-decoration: none;">EMAIL</a>
-            <a href="https://wa.me/5491112345678" style="font-weight: 700; text-decoration: none;">WHATSAPP</a>
+    <div style="background: white; padding: 40px 20px; text-align: center; border-top: 1px solid #000;">
+        <h2 class="cinzel" style="font-size: 1.2rem;">MONÚ</h2>
+        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
+            <a href="#" style="text-decoration: none; font-size: 0.8rem; font-weight: 700;">IG</a>
+            <a href="#" style="text-decoration: none; font-size: 0.8rem; font-weight: 700;">WA</a>
         </div>
     </div>
     """, unsafe_allow_html=True)
