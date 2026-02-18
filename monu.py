@@ -22,16 +22,14 @@ def get_base64_image(file_path):
 LOGO_HEADER = get_base64_image('LogoHorizontal2.png')
 LOGO_WATERMARK = get_base64_image('MonuMarcaDeAgua1.png')
 
-# --- UI FRAMEWORK: CSS CUSTOM (PASOS 1, 2, 3 y 4) ---
-# Paso 2: Fondo Gris Humo para contraste
-# Paso 4: Optimización de visibilidad del logo de fondo
+# --- UI FRAMEWORK: CSS CUSTOM ---
 watermark_css = f"""
     background-image: url("data:image/png;base64,{LOGO_WATERMARK}");
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-position: center;
     background-size: 45%;
-    opacity: 0.08; /* Aumentamos levemente para que se note sobre el gris */
+    opacity: 0.08;
 """ if LOGO_WATERMARK else ""
 
 st.markdown(f"""
@@ -42,7 +40,6 @@ st.markdown(f"""
     * {{ color: #000000 !important; font-family: 'Inter', sans-serif; }}
     h1, h2, h3, .cinzel {{ font-family: 'Cinzel', serif !important; font-weight: 700; letter-spacing: 2px; }}
 
-    /* Paso 2: Fondo Gris Humo Claro */
     .stApp {{ background-color: #F5F5F5; }}
     
     .bg-watermark {{
@@ -50,58 +47,56 @@ st.markdown(f"""
         {watermark_css} z-index: -1;
     }}
 
-    /* Header Estilo Boutique */
+    /* HEADER FIJO CON LOGO AGRANDADO */
     .header {{
-        position: fixed; top: 0; left: 0; width: 100%; height: 125px;
+        position: fixed; top: 0; left: 0; width: 100%; height: 140px;
         background: rgba(255,255,255,0.99); border-bottom: 1px solid #000;
         display: flex; justify-content: space-between; align-items: center;
         padding: 0 50px; z-index: 1000;
     }}
 
-    /* Paso 1: Logo de imagen 15% más grande respecto al anterior */
+    /* Ajuste Quirúrgico: Logo mucho más grande */
     .logo-img {{ 
-        max-height: 105px; /* Escalado para protagonismo absoluto */
+        max-height: 125px; 
         width: auto;
+        padding: 5px 0;
     }}
     
     .nav-links {{ display: flex; gap: 40px; }}
     .nav-item {{ text-decoration: none; font-size: 1.1rem; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.3s; font-weight: 700; }}
-    .nav-item:hover {{ border-bottom: 2px solid #A66355; }}
 
-    /* Paso 3: Rectángulo Monú minimalista y ceñido */
-    .hero-container {{
-        margin-top: 160px;
-        display: flex;
-        justify-content: center;
-        width: 100%;
-    }}
-    .hero-box {{
+    /* BANNER FULL-WIDTH (RECTÁNGULO MONÚ) */
+    .hero-container-full {{
+        margin-top: 140px;
+        width: 100vw;
+        margin-left: -5rem; /* Ajuste para romper el padding de streamlit */
         background: white;
-        border: 1px solid #000;
-        padding: 5px 30px; /* Ceñido al texto */
-        display: inline-block;
+        border-top: 1px solid #000;
+        border-bottom: 1px solid #000;
+        padding: 15px 0;
         text-align: center;
     }}
-    .hero-box h1 {{ margin: 0; font-size: 2.5rem; line-height: 1.2; }}
+    
+    .hero-box-text {{
+        font-size: 3rem;
+        margin: 0;
+        letter-spacing: 15px;
+    }}
+
+    .aesthetic-subtitle {{
+        text-align: center;
+        margin-top: 15px;
+        font-size: 0.9rem;
+        letter-spacing: 6px;
+        font-style: italic;
+        opacity: 0.8;
+    }}
 
     /* Layout de Productos */
     .main-content {{ padding: 40px; }}
-    
-    .card {{
-        background: white; border: 1px solid #E0E0E0; padding: 20px;
-        transition: 0.4s;
-    }}
-    .card:hover {{ border: 1px solid #A66355; }}
-    
-    /* Botonera Premium */
-    .stButton>button {{
-        width: 100%; border-radius: 0; background-color: #A66355 !important;
-        color: #000 !important; border: none; padding: 15px; font-weight: 600;
-        letter-spacing: 2px;
-    }}
+    .card {{ background: white; border: 1px solid #E0E0E0; padding: 20px; }}
+    .stButton>button {{ width: 100%; background-color: #A66355 !important; color: #000 !important; border: none; padding: 15px; font-weight: 600; }}
 
-    /* Sidebar Fix */
-    [data-testid="stSidebar"] {{ background-color: #FFF; }}
     header, footer {{ visibility: hidden; }}
     </style>
     <div class="bg-watermark"></div>
@@ -125,19 +120,16 @@ st.markdown(f"""
     </div>
     """, unsafe_allow_html=True)
 
-# --- PASO 3: RECTÁNGULO MONÚ CEÑIDO ---
+# --- BANNER MONÚ FULL WIDTH & TEXTO AESTHETIC ---
 st.markdown("""
-    <div class="hero-container">
-        <div class="hero-box">
-            <h1 class="cinzel">MONÚ</h1>
-        </div>
+    <div class="hero-container-full">
+        <h1 class="cinzel hero-box-text">MONÚ</h1>
     </div>
+    <p class="aesthetic-subtitle">ESENCIA ASTRAL • CURADURÍA GLOBAL • TU PODER INTERIOR</p>
     """, unsafe_allow_html=True)
 
-st.markdown("<p style='text-align:center; letter-spacing: 5px; margin-top: 20px; margin-bottom: 50px;'>ESTÉTICA • PODER • CONEXIÓN</p>", unsafe_allow_html=True)
-
 # --- PRODUCTOS (GRID) ---
-st.markdown('<div id="productos">', unsafe_allow_html=True)
+st.markdown('<div class="main-content" id="productos">', unsafe_allow_html=True)
 PRODUCTOS = [
     {"id": "M001", "nombre": "Bala Labial 10 Vel.", "precio": 19999, "img": "https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=800"},
     {"id": "M002", "nombre": "Conjunto Puntilla Soft", "precio": 14000, "img": "https://images.unsplash.com/photo-1541310588484-ad456b40e94f?w=800"},
