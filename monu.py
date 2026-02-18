@@ -1,6 +1,8 @@
 import streamlit as st
 import base64
 import os
+import pandas as pd
+from streamlit_gsheets import GSheetsConnection
 
 # --- CONFIGURACIÓN DE ALTO NIVEL ---
 st.set_page_config(
@@ -21,7 +23,6 @@ def get_base64_image(file_path):
 
 # Cargamos los logos y la imagen institucional del banner
 LOGO_HEADER = get_base64_image('MonumarcaLogoNegro.png')
-# CAMBIO QUIRÚRGICO: Ahora el banner carga envio.jpeg
 IMG_BANNER_ENVIO = get_base64_image('envio.jpeg') 
 LOGO_WATERMARK = get_base64_image('MonuMarcaDeAgua1.png')
 
@@ -83,7 +84,7 @@ st.markdown(f"""
     
     .img-banner-envio {{
         width: 100%;
-        max-width: 1200px; /* Ajuste para que no se deforme la imagen de pasos */
+        max-width: 1200px;
         height: auto;
         display: block;
     }}
@@ -137,23 +138,31 @@ st.markdown(f"""
     <p class="aesthetic-subtitle">Tienda Online</p>
     """, unsafe_allow_html=True)
 
-# --- PRODUCTOS (GRID) ---
+# --- PRODUCTOS (GRID - INTEGRACIÓN GOOGLE SHEETS) ---
+# Aquí se aplica el cambio: leemos del Sheet en lugar de la lista manual
 st.markdown('<div class="main-content" id="productos">', unsafe_allow_html=True)
-PRODUCTOS = [
-    {"id": "M001", "nombre": "Bala Labial 10 Vel.", "precio": 19999, "img": "https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=800"},
-    {"id": "M002", "nombre": "Conjunto Puntilla Soft", "precio": 14000, "img": "https://images.unsplash.com/photo-1541310588484-ad456b40e94f?w=800"},
-    {"id": "M003", "nombre": "Lubricante Anal LUBE", "precio": 11000, "img": "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=800"},
-    {"id": "M004", "nombre": "Body Splash SEXITIVE", "precio": 11000, "img": "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=800"}
-]
+
+sheet_url = "https://docs.google.com/spreadsheets/d/13WPtfzC4qY-Z3nu4kJv6vnVEneI_ikyDtUBuNzl83Fc/edit?usp=sharing"
+
+try:
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    df = conn.read(spreadsheet=sheet_url)
+    # Convertimos a lista de diccionarios para mantener la lógica original del loop
+    PRODUCTOS = df.to_dict('records')
+except Exception as e:
+    # Fallback seguro para que la app no colapse si falla internet
+    PRODUCTOS = []
+    st.error("Conectando con el inventario...")
 
 cols = st.columns(2)
 for i, p in enumerate(PRODUCTOS):
     with cols[i % 2]:
+        # Se mantiene exactamente tu HTML y CSS de las tarjetas
         st.markdown(f"""
             <div class="card">
                 <img src="{p['img']}" style="width:100%; height:400px; object-fit:cover;">
                 <h3 style="margin: 15px 0; font-family: 'Cinzel', serif;">{p['nombre']}</h3>
-                <h2 style="margin-bottom:20px;">${p['precio']:,}</h2>
+                <h2 style="margin-bottom:20px;">${int(p['precio']):,}</h2>
             </div>
         """, unsafe_allow_html=True)
         
