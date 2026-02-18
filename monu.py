@@ -1,175 +1,187 @@
 import streamlit as st
-import base64
-import os
+from streamlit_gsheets import GSheetsConnection
+import pandas as pd
+import urllib.parse
 
-# --- CONFIGURACIÓN DE ALTO NIVEL ---
+# --- CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(
-    page_title="Monú | Boutique Astral & Global",
-    page_icon="✨",
-    layout="wide",
-    initial_sidebar_state="collapsed"
+    page_title="Minimalist E-commerce B&W",
+    page_icon="🛍️",
+    layout="wide"
 )
 
-# --- CORE ENGINE: MANEJO DE ASSETS ---
-def get_base64_image(file_path):
-    abs_path = os.path.join(os.getcwd(), file_path)
-    if os.path.exists(abs_path):
-        with open(abs_path, 'rb') as f:
-            data = f.read()
-        return base64.b64encode(data).decode()
-    return None
-
-# Cargamos los logos y la imagen institucional del banner
-LOGO_HEADER = get_base64_image('MonumarcaLogoNegro.png')
-# CAMBIO QUIRÚRGICO: Ahora el banner carga envio.jpeg
-IMG_BANNER_ENVIO = get_base64_image('envio.jpeg') 
-LOGO_WATERMARK = get_base64_image('MonuMarcaDeAgua1.png')
-
-# --- UI FRAMEWORK: CSS CUSTOM ---
-watermark_css = f"""
-    background-image: url("data:image/png;base64,{LOGO_WATERMARK}");
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-position: center;
-    background-size: 45%;
-    opacity: 0.08;
-""" if LOGO_WATERMARK else ""
-
-st.markdown(f"""
+# --- INYECCIÓN DE CSS (CUSTOM UI/UX) ---
+def inject_custom_css():
+    st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
-
-    /* Estética Global: Tipografía Negra */
-    * {{ color: #000000 !important; font-family: 'Inter', sans-serif; }}
-    h1, h2, h3, .cinzel {{ font-family: 'Cinzel', serif !important; font-weight: 700; letter-spacing: 2px; }}
-
-    .stApp {{ background-color: #F5F5F5; }}
-    
-    .bg-watermark {{
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        {watermark_css} z-index: -1;
-    }}
-
-    /* HEADER FIJO */
-    .header {{
-        position: fixed; top: 0; left: 0; width: 100%; height: 140px;
-        background: rgba(255,255,255,0.99); border-bottom: 1px solid #000;
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 0 50px; z-index: 1000;
-    }}
-
-    .logo-img-header {{ 
-        max-height: 125px; 
-        width: auto;
-        padding: 5px 0;
-    }}
-    
-    .nav-links {{ display: flex; gap: 40px; }}
-    .nav-item {{ text-decoration: none; font-size: 1.1rem; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.3s; font-weight: 700; }}
-
-    /* BANNER FULL-WIDTH CON IMAGEN INSTITUCIONAL */
-    .hero-container-full {{
-        margin-top: 140px;
-        width: 100vw;
-        margin-left: -5rem;
-        background: white;
-        border-top: 1px solid #000;
-        border-bottom: 1px solid #000;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
-    }}
-    
-    .img-banner-envio {{
-        width: 100%;
-        max-width: 1200px; /* Ajuste para que no se deforme la imagen de pasos */
-        height: auto;
-        display: block;
-    }}
-
-    .aesthetic-subtitle {{
-        text-align: center;
-        margin-top: 15px;
-        font-size: 0.9rem;
-        letter-spacing: 8px;
-        font-style: italic;
-        opacity: 0.8;
-        text-transform: uppercase;
-    }}
-
-    /* Layout de Productos */
-    .main-content {{ padding: 40px; }}
-    .card {{ background: white; border: 1px solid #E0E0E0; padding: 20px; transition: 0.3s; }}
-    .card:hover {{ border: 1px solid #A66355; }}
-    .stButton>button {{ width: 100%; background-color: #A66355 !important; color: #000 !important; border: none; padding: 15px; font-weight: 600; }}
-
-    header, footer {{ visibility: hidden; }}
-    </style>
-    <div class="bg-watermark"></div>
-    """, unsafe_allow_html=True)
-
-# --- STATE MANAGEMENT ---
-if 'cart' not in st.session_state:
-    st.session_state.cart = []
-
-# --- HEADER RENDER ---
-logo_header_html = f'<img src="data:image/png;base64,{LOGO_HEADER}" class="logo-img-header">' if LOGO_HEADER else '<h1>MONÚ</h1>'
-
-st.markdown(f"""
-    <div class="header">
-        <div>{logo_header_html}</div>
-        <div class="nav-links">
-            <a href="#productos" class="nav-item cinzel">CATÁLOGO</a>
-            <a href="#contacto" class="nav-item cinzel">CONTACTO</a>
-            <a href="/carrito" target="_blank" class="nav-item cinzel" style="color:#A66355 !important;">CARRITO ({len(st.session_state.cart)})</a>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-# --- BANNER CENTRAL CON IMAGEN ENVIO.JPEG ---
-banner_envio_html = f'<img src="data:image/png;base64,{IMG_BANNER_ENVIO}" class="img-banner-envio">' if IMG_BANNER_ENVIO else '<h1 class="cinzel">COMO COMPRAR</h1>'
-
-st.markdown(f"""
-    <div class="hero-container-full">
-        {banner_envio_html}
-    </div>
-    <p class="aesthetic-subtitle">Tienda Online</p>
-    """, unsafe_allow_html=True)
-
-# --- PRODUCTOS (GRID) ---
-st.markdown('<div class="main-content" id="productos">', unsafe_allow_html=True)
-PRODUCTOS = [
-    {"id": "M001", "nombre": "Bala Labial 10 Vel.", "precio": 19999, "img": "https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=800"},
-    {"id": "M002", "nombre": "Conjunto Puntilla Soft", "precio": 14000, "img": "https://images.unsplash.com/photo-1541310588484-ad456b40e94f?w=800"},
-    {"id": "M003", "nombre": "Lubricante Anal LUBE", "precio": 11000, "img": "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=800"},
-    {"id": "M004", "nombre": "Body Splash SEXITIVE", "precio": 11000, "img": "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=800"}
-]
-
-cols = st.columns(2)
-for i, p in enumerate(PRODUCTOS):
-    with cols[i % 2]:
-        st.markdown(f"""
-            <div class="card">
-                <img src="{p['img']}" style="width:100%; height:400px; object-fit:cover;">
-                <h3 style="margin: 15px 0; font-family: 'Cinzel', serif;">{p['nombre']}</h3>
-                <h2 style="margin-bottom:20px;">${p['precio']:,}</h2>
-            </div>
-        """, unsafe_allow_html=True)
+        /* Paleta Monocromática y Tipografía */
+        :root {{
+            --primary-color: #000000;
+            --bg-color: #FFFFFF;
+        }}
         
-        if st.button(f"AÑADIR AL PEDIDO", key=f"add_{p['id']}"):
-            st.session_state.cart.append(p)
-            st.rerun()
-st.markdown('</div>', unsafe_allow_html=True)
+        .main {{
+            background-image: url("https://www.transparenttextures.com/patterns/white-diamond.png"); /* Ejemplo de textura sutil */
+            background-color: rgba(255, 255, 255, 0.9);
+        }}
 
-# --- FOOTER ---
-st.markdown(f"""
-    <div style="background: white; padding: 50px; margin-top: 50px; text-align: center; border-top: 1px solid #000;" id="contacto">
-        <h2 class="cinzel">CONECTÁ CON MONÚ</h2>
-        <div style="display: flex; justify-content: center; gap: 30px; margin: 20px 0;">
-            <a href="#" style="font-weight: 700; text-decoration: none;">INSTAGRAM</a>
-            <a href="mailto:contacto@monu.com" style="font-weight: 700; text-decoration: none;">EMAIL</a>
-            <a href="https://wa.me/5491112345678" style="font-weight: 700; text-decoration: none;">WHATSAPP</a>
-        </div>
-    </div>
+        /* Forzar texto negro absoluto */
+        h1, h2, h3, p, span, div, label {{
+            color: #000000 !important;
+            font-family: 'Helvetica', sans-serif;
+        }}
+
+        /* Logo Large (280px-300px) */
+        .logo-container {{
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }}
+        .logo-img {{
+            width: 300px;
+            filter: grayscale(100%);
+        }}
+
+        /* Cards de Producto */
+        .product-card {{
+            border: 1px solid #000000;
+            padding: 15px;
+            border-radius: 0px;
+            margin-bottom: 20px;
+            transition: transform 0.2s ease;
+        }}
+        .product-card:hover {{
+            box-shadow: 5px 5px 0px #000000;
+            transform: translateY(-2px);
+        }}
+
+        /* Botones Estilo Minimalista */
+        .stButton>button {{
+            width: 100%;
+            border-radius: 0px;
+            border: 2px solid #000000;
+            background-color: #FFFFFF;
+            color: #000000;
+            font-weight: bold;
+            transition: 0.3s;
+        }}
+        .stButton>button:hover {{
+            background-color: #000000;
+            color: #FFFFFF;
+            border: 2px solid #000000;
+        }}
+    </style>
     """, unsafe_allow_html=True)
+
+# --- LÓGICA DE DATOS (GOOGLE SHEETS) ---
+@st.cache_data(ttl=600)  # Cache de 10 min para optimizar cuota API
+def load_data():
+    try:
+        conn = st.connection("gsheets", type=GSheetsConnection)
+        df = conn.read(ttl="10m")
+        # Validamos columnas obligatorias
+        required_cols = ['id', 'nombre', 'categoria', 'precio', 'descripcion', 'imagen_url', 'info_url', 'stock']
+        for col in required_cols:
+            if col not in df.columns:
+                st.error(f"Error: La columna '{col}' no existe en el Google Sheet.")
+                return pd.DataFrame()
+        return df
+    except Exception as e:
+        st.error(f"Error de conexión: {e}")
+        return pd.DataFrame()
+
+# --- GESTIÓN DE CARRITO (SESSION STATE) ---
+if 'cart' not in st.session_state:
+    st.session_state['cart'] = {}
+
+def add_to_cart(product_id: int, product_name: str, price: float):
+    if product_id in st.session_state['cart']:
+        st.session_state['cart'][product_id]['quantity'] += 1
+    else:
+        st.session_state['cart'][product_id] = {'name': product_name, 'price': price, 'quantity': 1}
+    st.toast(f"✅ {product_name} añadido")
+
+# --- MÓDULO DE CHECKOUT ---
+def process_payment():
+    """Vía Futura: Portal de Pagos"""
+    st.info("🔄 Redirigiendo a plataforma de pago...")
+
+def generate_whatsapp_link(phone_number: str):
+    cart = st.session_state['cart']
+    if not cart:
+        return None
+    
+    mensaje = "*Nuevo Pedido - B&W Store*\n\n"
+    total_general = 0
+    for item in cart.values():
+        subtotal = item['price'] * item['quantity']
+        mensaje += f"• {item['name']} x{item['quantity']} = ${subtotal:,.2f}\n"
+        total_general += subtotal
+    
+    mensaje += f"\n*TOTAL FINAL: ${total_general:,.2f}*"
+    encoded_msg = urllib.parse.quote(mensaje)
+    return f"https://wa.me/{phone_number}?text={encoded_msg}"
+
+# --- UI PRINCIPAL ---
+def main():
+    inject_custom_css()
+    
+    # Header / Logo
+    st.markdown('<div class="logo-container"><img src="https://via.placeholder.com/300x100?text=LOGO+B%26W" class="logo-img"></div>', unsafe_allow_html=True)
+    
+    df = load_data()
+    if df.empty:
+        st.warning("No hay productos disponibles actualmente.")
+        return
+
+    # Sidebar: Filtros y Carrito
+    with st.sidebar:
+        st.header("FILTROS")
+        categoria = st.selectbox("Categoría", ["Todos"] + list(df['categoria'].unique()))
+        
+        st.divider()
+        st.header("TU CARRITO")
+        total_cart = 0
+        for pid, item in st.session_state['cart'].items():
+            st.write(f"**{item['name']}** x{item['quantity']}")
+            total_cart += item['price'] * item['quantity']
+        
+        st.subheader(f"Total: ${total_cart:,.2f}")
+        
+        if st.button("FINALIZAR COMPRA (WhatsApp)"):
+            link = generate_whatsapp_link("5491122334455") # Reemplazar con tu número
+            if link:
+                st.markdown(f'<a href="{link}" target="_blank" style="text-decoration:none;"><button style="width:100%; cursor:pointer;">Confirmar en WhatsApp 📱</button></a>', unsafe_allow_html=True)
+            else:
+                st.warning("El carrito está vacío")
+        
+        if st.button("Pagar con Tarjeta (Beta)"):
+            process_payment()
+
+    # Catálogo Dinámico
+    st.markdown(f"### Catálogo / {categoria}")
+    
+    filtered_df = df if categoria == "Todos" else df[df['categoria'] == categoria]
+    
+    # Grilla de 3 columnas
+    cols = st.columns(3)
+    for index, row in filtered_df.iterrows():
+        with cols[index % 3]:
+            st.markdown(f"""
+            <div class="product-card">
+                <img src="{row['imagen_url']}" style="width:100%; filter:grayscale(100%);">
+                <h4>{row['nombre']}</h4>
+                <p><strong>${row['precio']:,.2f}</strong></p>
+                <p style="font-size: 0.8em;">{row['descripcion'][:80]}...</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            c1, c2 = st.columns(2)
+            with c1:
+                st.link_button("Ver Info", row['info_url'])
+            with c2:
+                if st.button("Añadir", key=f"btn_{row['id']}"):
+                    add_to_cart(row['id'], row['nombre'], row['precio'])
+
+if __name__ == "__main__":
+    main()
