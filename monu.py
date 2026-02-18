@@ -1,171 +1,175 @@
 import streamlit as st
 import base64
+import os
 
-# Configuración de la página
+# --- CONFIGURACIÓN PRO ---
 st.set_page_config(
-    page_title="Monú | Esencia Astral",
+    page_title="Monú | Esencia & Estilo",
     page_icon="✨",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# --- LÓGICA DE SUPER SENIOR PARA CARGAR IMÁGENES LOCALES ---
-def get_base64_of_bin_file(bin_file):
-    with open(bin_file, 'rb') as f:
-        data = f.read()
-    return base64.b64encode(data).decode()
+# --- FUNCIÓN SENIOR PARA ASSETS ---
+def get_base64(bin_file):
+    if os.path.exists(bin_file):
+        with open(bin_file, 'rb') as f:
+            data = f.read()
+        return base64.b64encode(data).decode()
+    return None
 
-# Intentamos cargar el logo de fondo para el CSS
-try:
-    bin_str = get_base64_of_bin_file('MonumarcaLogoNegro.png')
-    fondo_css = f"background-image: url('data:image/png;base64,{bin_str}');"
-except:
-    fondo_css = "" # Fallback si el archivo no está
+# Cargamos los logos
+logo_bg_base64 = get_base64('MonumarcaLogoNegro.png')
+logo_header_base64 = get_base64('LogoHorizontal.png')
 
-# --- ESTILO QUIRÚRGICO: IDENTIDAD VISUAL MONÚ ---
+# --- ESTILO QUIRÚRGICO DE ALTO NIVEL ---
+fondo_style = ""
+if logo_bg_base64:
+    fondo_style = f"""
+    background-image: url("data:image/png;base64,{logo_bg_base64}");
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    background-size: 40%;
+    """
+
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
 
-    /* Fondo con MonumarcaLogoNegro.png borroso */
-    .main {{
+    /* Fondo Maestro con Efecto Borroso */
+    .stApp {{
         background-color: #FFFDFB;
-        {fondo_css}
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-        background-position: center;
-        background-size: 50%;
+        {fondo_style}
     }}
     
-    .main::before {{
+    .stApp::before {{
         content: "";
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
-        background-color: rgba(255, 253, 251, 0.85); /* Capa de claridad */
-        backdrop-filter: blur(12px); /* Efecto borroso pedido */
+        background-color: rgba(255, 253, 251, 0.88);
+        backdrop-filter: blur(15px); /* El borroso pro que pediste */
         z-index: -1;
     }}
 
-    /* Banner Superior con LogoHorizontal.png */
-    .banner-container {{
-        background: linear-gradient(135deg, #4A2C2A 0%, #5D3A32 100%);
-        padding: 30px;
-        border-radius: 0 0 40px 40px;
+    /* Header Banner */
+    .header-banner {{
+        background: linear-gradient(135deg, #2D1B19 0%, #4A2C2A 100%);
+        padding: 40px;
+        border-radius: 0 0 50px 50px;
         text-align: center;
-        margin: -60px -50px 40px -50px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        margin: -80px -50px 40px -50px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
     }}
-    .logo-horizontal {{
-        max-width: 300px;
-        height: auto;
+    
+    .header-logo {{
+        max-width: 280px;
+        filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.3));
     }}
 
-    /* Cards de Producto con Glassmorphism */
+    /* Cards de Producto Estilo Boutique */
     .product-card {{
         background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(5px);
-        padding: 25px;
+        padding: 20px;
         border-radius: 25px;
-        border: 1px solid rgba(242, 232, 223, 0.8);
+        border: 1px solid rgba(166, 99, 85, 0.2);
         text-align: center;
-        margin-bottom: 25px;
-        transition: all 0.3s ease;
+        margin-bottom: 20px;
+        transition: 0.4s;
     }}
     .product-card:hover {{
-        transform: translateY(-8px);
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(166, 99, 85, 0.15);
         border: 1px solid #A66355;
-        box-shadow: 0 20px 40px rgba(166, 99, 85, 0.1);
     }}
 
-    /* Botones Monú */
+    /* Botón Monú */
     .stButton>button {{
         width: 100%;
         border-radius: 50px;
         background: #A66355;
         color: white;
         border: none;
-        padding: 12px;
-        font-family: 'Inter', sans-serif;
+        padding: 14px;
         font-weight: 600;
-        letter-spacing: 1px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        transition: 0.3s;
     }}
     .stButton>button:hover {{
-        background: #5D3A32;
+        background: #2D1B19;
         color: #D4A373;
-    }}
-
-    [data-testid="stSidebar"] {{
-        background-color: #FDF8F5;
+        transform: scale(1.02);
     }}
     </style>
     """, unsafe_allow_html=True)
 
-# --- RENDER DEL BANNER CON LOGOHORIZONTAL.PNG ---
-st.markdown(f"""
-    <div class="banner-container">
-        <img src="app/static/LogoHorizontal.png" class="logo-horizontal" onerror="this.src='https://via.placeholder.com/300x100?text=Logo+Horizontal'">
-    </div>
-    """, unsafe_allow_html=True)
+# --- RENDER DEL ENCABEZADO ---
+if logo_header_base64:
+    st.markdown(f"""
+        <div class="header-banner">
+            <img src="data:image/png;base64,{logo_header_base64}" class="header-logo">
+            <p style="color: #D4A373; letter-spacing: 4px; font-family: 'Cinzel'; margin-top:15px;">ESENCIA ASTRAL & GLOBAL</p>
+        </div>
+        """, unsafe_allow_html=True)
+else:
+    st.title("MONÚ")
 
-st.markdown("<p style='text-align: center; color: #A66355; font-style: italic; letter-spacing: 3px; margin-top: 10px;'>CURADURÍA ASTRAL & GLOBAL</p>", unsafe_allow_html=True)
-st.divider()
-
-# --- BASE DE DATOS DE PRODUCTOS ---
+# --- INVENTARIO REAL (Extraído de tu Monú Inventario ) ---
 productos = [
-    {"id": 1, "nombre": "Reloj Inteligente V2", "precio": 35000, "tag": "Dropi", "img": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500"},
-    {"id": 2, "nombre": "Remera Monu Oversize", "precio": 15000, "tag": "Propio", "img": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500"},
-    {"id": 3, "nombre": "Auriculares Noise Cancelling", "precio": 55000, "tag": "Dropi", "img": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500"},
-    {"id": 4, "nombre": "Gorra Trucker Monu", "precio": 8000, "tag": "Propio", "img": "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=500"}
+    {"id": 1, "nombre": "Bala Labial 10 Vel.", "precio": 19999, "img": "https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=500"},
+    {"id": 2, "nombre": "Conjunto Puntilla Soft", "precio": 14000, "img": "https://images.unsplash.com/photo-1541310588484-ad456b40e94f?w=500"},
+    {"id": 3, "nombre": "Lubricante Anal LUBE", "precio": 11000, "img": "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=500"},
+    {"id": 4, "nombre": "Body Splash SEXITIVE", "precio": 11000, "img": "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=500"}
 ]
 
+# --- CARRITO ---
 if 'carrito' not in st.session_state:
     st.session_state.carrito = []
 
 # --- GRID DE PRODUCTOS ---
 cols = st.columns(2)
-
 for i, prod in enumerate(productos):
     with cols[i % 2]:
         st.markdown(f"""
             <div class="product-card">
-                <img src="{prod['img']}" style="width:100%; border-radius:15px; height: 200px; object-fit: cover;">
-                <p style="font-size: 0.7rem; color: #A66355; font-weight: bold; margin-top:15px; letter-spacing: 1.5px;">{prod['tag'].upper()}</p>
-                <h3 style="margin: 5px 0; font-size: 1.3rem; font-family: 'Cinzel', serif;">{prod['nombre']}</h3>
-                <p style="font-size: 1.2rem; font-weight: bold; color: #4A2C2A;">${prod['precio']:,}</p>
+                <img src="{prod['img']}" style="width:100%; border-radius:15px; height:180px; object-fit:cover;">
+                <h3 style="font-family: 'Cinzel'; color: #2D1B19; margin-top:15px;">{prod['nombre']}</h3>
+                <p style="font-size: 1.4rem; font-weight: bold; color: #A66355;">${prod['precio']:,}</p>
             </div>
         """, unsafe_allow_html=True)
         
-        if st.button(f"Lo quiero", key=f"btn_{prod['id']}"):
+        if st.button(f"Lo quiero", key=f"prod_{prod['id']}"):
             st.session_state.carrito.append(prod)
-            st.toast(f"¡{prod['nombre']} agregado!")
+            st.toast(f"¡{prod['nombre']} añadido! ✨")
 
-# --- SIDEBAR / CHECKOUT ---
+# --- SIDEBAR PROFESIONAL ---
 with st.sidebar:
-    st.markdown("<h2 style='text-align: left; font-family: Cinzel, serif;'>Tu Selección ✨</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-family: Cinzel;'>Mi Pedido</h2>", unsafe_allow_html=True)
     if not st.session_state.carrito:
-        st.write("Tu carrito está esperando.")
+        st.info("Tu selección aparecerá aquí.")
     else:
-        total = 0
+        total = sum(item['precio'] for item in st.session_state.carrito)
         resumen = ""
         for item in st.session_state.carrito:
-            st.write(f"• **{item['nombre']}** - ${item['precio']:,}")
-            total += item['precio']
-            resumen += f"- {item['nombre']} (%24{item['precio']:,})%0A"
+            st.write(f"🏷️ **{item['nombre']}** - ${item['precio']:,}")
+            resumen += f"- {item['nombre']} (${item['precio']:,})%0A"
         
         st.divider()
-        st.write(f"### Total: ${total:,}")
+        st.markdown(f"### Total: ${total:,}")
         
-        numero_tel = "5491112345678" # TU WHATSAPP
-        msg = f"Hola Monú! ✨ Quiero este pedido:%0A{resumen}%0ATotal: ${total:,}"
-        ws_link = f"https://wa.me/{numero_tel}?text={msg}"
+        # WhatsApp Botón
+        ws_msg = f"Hola Monú! ✨ Quiero estos productos:%0A{resumen}%0ATotal: ${total:,}"
+        ws_url = f"https://wa.me/5491112345678?text={ws_msg}" # Cambiá por tu cel real
         
         st.markdown(f"""
-            <a href="{ws_link}" target="_blank" style="text-decoration: none;">
+            <a href="{ws_url}" target="_blank" style="text-decoration: none;">
                 <button style="width: 100%; border-radius: 50px; background-color: #25d366; color: white; border: none; padding: 15px; font-weight: bold; cursor: pointer;">
                     Finalizar por WhatsApp 💬
                 </button>
             </a>
         """, unsafe_allow_html=True)
         
-        if st.button("Vaciar carrito"):
+        if st.button("Limpiar carrito"):
             st.session_state.carrito = []
             st.rerun()
