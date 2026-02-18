@@ -83,7 +83,7 @@ st.markdown(f"""
     
     .img-banner-envio {{
         width: 100%;
-        max-width: 1200px; /* Ajuste para que no se deforme la imagen de pasos */
+        max-width: 600px; /* Ajuste para que no se deforme la imagen de pasos */
         height: auto;
         display: block;
     }}
