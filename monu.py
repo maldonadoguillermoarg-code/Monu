@@ -99,4 +99,7 @@ if 'cart' not in st.session_state:
 
 def add_to_cart(prod_id, prod_name, prod_price):
     if prod_id in st.session_state['cart']:
-        st.session_state['cart'][prod_id]['
+        st.session_state['cart'][prod_id]['qty'] += 1
+    else:
+        st.session_state['cart'][prod_id] = {'name': prod_name, 'price': prod_price, 'qty': 1}
+    st.toast(f"Añadido: {prod_name}")
